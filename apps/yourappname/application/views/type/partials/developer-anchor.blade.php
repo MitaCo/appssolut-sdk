@@ -1,0 +1,1 @@
+{{ HTML::link($link, $field->value, isset($options) ? $options : array()) }}

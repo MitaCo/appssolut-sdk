@@ -1,0 +1,29 @@
+/* css stile for ie */
+
+.container, .navbar .container{
+	width:1000px !important;
+}
+.da-slider, .info-container, .navbar{
+	width:1000px;
+	/*margin: 0 auto;*/
+}
+.info-container, .navbar{
+	margin: 0 auto 20px;
+}
+.da-slide{
+	margin:0;
+	
+}
+.navbar-inverse .navbar-inner{
+	background-color:transparent;
+	filter:none;
+	margin:0;
+	padding:0;
+}
+.navbar .nav > li > a{
+	font-size:11px;
+	padding:4px 10px 5px;
+}
+.navbar .nav {
+	margin-top:16px;
+}
