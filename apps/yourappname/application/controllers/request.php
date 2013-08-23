@@ -22,17 +22,6 @@ class Request_Controller extends Base_Controller {
                 if (!$request->save())
                     die($request);
         }
-        /*if (!empty($input['to'])) {
-            foreach ($input['to'] as $user_id) {
-                $tosave = $input['request'] . '_' . $user_id;
-                $request = new Invite(array(
-                    'instance_id' => $instance->id,
-                    'request_id' => $tosave
-                ));
-                if (!$request->save())
-                    die($request);
-            }
-        }*/
         return Redirect::to($app->fblink);
     }
     public function get_response() {
