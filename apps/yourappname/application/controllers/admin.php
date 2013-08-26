@@ -62,8 +62,11 @@ class Admin_Controller extends Base_Controller {
         if (empty($instance)) {
             return Response::json(array('message' => 'Instance not found'), 400);
         }
-        $instance->fields()->storages()->delete();
-        $instance->fields()->delete();
+        $fields = Field::where_instance_id($instance->id)->get();
+        foreach ($fields as $field) {
+            $field->storages()->delete();
+            $field->delete();
+        }
         $instance->allowedcountries()->delete();
         $instance->targets()->delete();
         $instance->entries()->delete();
