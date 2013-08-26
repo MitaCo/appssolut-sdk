@@ -40,7 +40,7 @@ class Admin_Controller extends Base_Controller {
             ->where_instance_id($instance->id)
             ->where_target_id($target->id)
             ->where_page_id($page)
-            ->order_by('order', 'asc')
+            ->order_by('position', 'asc')
             ->get();
         
 
@@ -94,7 +94,7 @@ class Admin_Controller extends Base_Controller {
             ->where_target_id($target->id)
             ->where_page_id($page)
             ->where_null('button')
-            ->order_by('order', 'asc')
+            ->order_by('position', 'asc')
             ->get();
 
         // Exclude developer anchor and button
@@ -192,7 +192,7 @@ class Admin_Controller extends Base_Controller {
             ->where_instance_id($instance->id)
             ->where_page_id($page)
             ->where_target_id($target->id)
-            ->order_by('order', 'asc')
+            ->order_by('position', 'asc')
             ->get();
 
         $this->data['instance'] = $instance;
@@ -212,7 +212,7 @@ class Admin_Controller extends Base_Controller {
         if (empty($target)) {
             $target = Target::where_instance_id($instance->id)->order_by('id')->first();
         }
-        $field = Field::with('type')->where_instance_id($instance->id)->where_id($field_id)->order_by('order', 'asc')->first();
+        $field = Field::with('type')->where_instance_id($instance->id)->where_id($field_id)->order_by('position', 'asc')->first();
 
         $this->data['instance'] = $instance;
         $this->data['page'] = $page;
@@ -326,9 +326,9 @@ class Admin_Controller extends Base_Controller {
         $field_1 = Field::find($postdata['id_1']);
         $field_2 = Field::find($postdata['id_2']);
 
-        $temp_order = $field_1->order;
-        $field_1->order = $field_2->order;
-        $field_2->order = $temp_order;
+        $temp_position = $field_1->position;
+        $field_1->position = $field_2->position;
+        $field_2->position = $temp_position;
 
         $field_1->save();
         $field_2->save();
@@ -394,11 +394,11 @@ class Admin_Controller extends Base_Controller {
         $fields = Field::where_instance_id($instance->id)
             ->where_target_id($target->id)
             ->where_page_id($page)
-            ->where('order', '>=', $postdata['position'])
+            ->where('position', '>=', $postdata['position'])
             ->get();
 
         foreach($fields as $field) {
-            $field->order = $field->order + 1;
+            $field->position = $field->position + 1;
             $field->save();
         }
 
@@ -409,7 +409,7 @@ class Admin_Controller extends Base_Controller {
         $field->fangate = 0;
         $field->label = $label;
         $field->value = $value;
-        $field->order = $postdata['position'];
+        $field->position = $postdata['position'];
         $field->visible = 1;
         $field->editable = 1;
         $field->required = 1;
@@ -441,30 +441,30 @@ class Admin_Controller extends Base_Controller {
             $fields = Field::where_instance_id($instance->id)
                 ->where_target_id($target->id)
                 ->where_page_id($page)
-                ->where('order', '>=', $new_pos)
-                ->where('order', '<', $old_pos)
+                ->where('position', '>=', $new_pos)
+                ->where('position', '<', $old_pos)
                 ->get();
 
             foreach($fields as $field) {
-                $field->order = $field->order + 1;
+                $field->position = $field->position + 1;
                 $field->save();
             }
         } else {
             $fields = Field::where_instance_id($instance->id)
                 ->where_target_id($target->id)
                 ->where_page_id($page)
-                ->where('order', '<=', $new_pos)
-                ->where('order', '>', $old_pos)
+                ->where('position', '<=', $new_pos)
+                ->where('position', '>', $old_pos)
                 ->get();
 
             foreach($fields as $field) {
-                $field->order = $field->order - 1;
+                $field->position = $field->position - 1;
                 $field->save();
             }
         }
 
         $field = Field::find($postdata['field_id']);
-        $field->order = $new_pos;
+        $field->position = $new_pos;
 
         if ($field->save()) {
             return Response::json(array('message' => 'Position updated'), 200);
@@ -493,10 +493,10 @@ class Admin_Controller extends Base_Controller {
         if($field->delete()) {
             Session::flash('message', 'Field deleted. ');
 
-            $fields = Field::where_instance_id($instance->id)->where_page_id($page)->where_target_id($target->id)->order_by('order', 'asc')->get();
+            $fields = Field::where_instance_id($instance->id)->where_page_id($page)->where_target_id($target->id)->order_by('position', 'asc')->get();
             $i = 1;
             foreach ($fields as $field) {
-                $field->order = $i++;
+                $field->position = $i++;
                 $field->save();
             }
 
@@ -847,6 +847,12 @@ class Admin_Controller extends Base_Controller {
         $setting->age_id = 1;
         $setting->save();
 
+        $pages = Page::with('fakes')->get();
+        foreach($pages as $page) {
+            $this->create_fields_from_fakes($page, $instance->id, $template_id, $target->id);
+        }
+
+        /*
         // Fangate
         $fakes = DB::table('fakes')->where_in('id', array (1))->order_by('order')->get();
         $this->create_fields_from_fakes($fakes, $instance->id, 1, $template_id, 'fangate.jpg', $target->id);
@@ -873,30 +879,29 @@ class Admin_Controller extends Base_Controller {
         $fakes = DB::table('fakes')->where_in('id', array (29, 30))->order_by('order')->get();
         //$this->create_fields_from_fakes($fakes, $instance->id, 4);
         $this->create_fields_from_fakes($fakes, $instance->id, 4, $template_id, 'thankyou.jpg', $target->id);
-
-        
+        */
     }
 
-    private function create_fields_from_fakes($fakes, $instance_id, $page_id, $template_id, $image, $target_id, $editable = 1) {
+    private function create_fields_from_fakes($page, $instance_id, $template_id, $target_id) {
         $i = 1;
-        foreach ($fakes as $fake) {
+        foreach ($page->fakes as $fake) {
             $field = new Field();
             $field->instance_id = $instance_id;
             $field->type_id = $fake->type_id;
             $field->fangate = 0;
             $field->label = $fake->label;
             $field->button = $fake->button;
-            if ($i == 1 and !empty($image)) {
-                $field->value = URL::to('templates/'.$template_id.'/'.$image);
+            if ($i == 1 and !empty($page->image)) {
+                $field->value = URL::to('templates/'.$template_id.'/'.$page->image);
             } else {
                 $field->value = $fake->value;
             }
 
-            $field->order = $i++;
+            $field->position = $i++;
             $field->visible = 1;
-            $field->editable = $editable;
+            $field->editable = 1;
             $field->required = 1;
-            $field->page_id = $page_id;
+            $field->page_id = $fake->page_id;
             $field->property = $fake->property;
             $field->template_id = $fake->template_id;
             $field->target_id = $target_id;
@@ -924,7 +929,7 @@ class Admin_Controller extends Base_Controller {
             $field->button = $original_field->button;
             $field->label = $original_field->label;
             $field->value = $original_field->value;
-            $field->order = $original_field->order;
+            $field->position = $original_field->position;
             $field->visible = $original_field->visible;
             $field->editable = $original_field->editable;
             $field->required = $original_field->required;

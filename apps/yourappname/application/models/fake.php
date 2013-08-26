@@ -18,4 +18,8 @@ class Fake extends Eloquent {
     public function type() {
         return $this->belongs_to('Type');
     }
+
+    public function page() {
+        return $this->belongs_to('Page');
+    }
 }

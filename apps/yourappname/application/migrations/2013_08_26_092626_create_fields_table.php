@@ -14,7 +14,7 @@ class Create_Fields_Table {
             $table->string('label', 64);
             $table->text('value')->nullable();
             $table->text('info')->nullable();
-            $table->integer('order');
+            $table->integer('position');
             $table->string('button', 32)->nullable();
             $table->string('property')->nullable();
             $table->boolean('fangate')->default(0);
