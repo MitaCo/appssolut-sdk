@@ -59,7 +59,7 @@ class Home_Controller extends Sdk_Controller {
                 ->where_target_id($target->id)
                 ->where_page_id($page_id)
                 ->where_null('button')
-                ->order_by('order', 'asc')
+                ->order_by('position', 'asc')
                 ->get();
 
         

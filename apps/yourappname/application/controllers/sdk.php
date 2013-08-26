@@ -112,7 +112,6 @@ class Sdk_Controller extends Base_Controller {
         } 
         Session::flush();
         return;
-        
     }
 
 }

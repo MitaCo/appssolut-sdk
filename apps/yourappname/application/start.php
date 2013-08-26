@@ -61,7 +61,6 @@ Laravel\Autoloader::$aliases = $aliases;
 Autoloader::map(array(
     'Base_Controller' => path('app').'controllers/base.php',
     'Sdk_Controller' => path('app').'controllers/sdk.php',
-    //'Module_Controller' => path('app').'controllers/module.php',
     'URIhelper' => path('app').'libraries/URIhelper.php',
     'Fbdata_Controller' => path('app').'controllers/fbdata.php',
 ));

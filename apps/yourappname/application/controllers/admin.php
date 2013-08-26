@@ -13,6 +13,8 @@ class Admin_Controller extends Base_Controller {
 
     // Preview in manager
     public function get_preview($hash = null, $page = 1, $template_id = 1, $target = 1) {
+
+        // Verify and get instance
         if (empty($hash)) {
             return Response::json(array('message' => 'Instance not found'), 400);
         }
@@ -21,10 +23,13 @@ class Admin_Controller extends Base_Controller {
             $this->initialize_instance($hash, $template_id);
             $instance = Instance::with('setting')->where_instance($hash)->first();
         }
+
+        // Verify and get target
         $target = Target::where_instance_id($instance->id)->where_id($target)->first();
         if (empty($target)) {
             $target = Target::where_instance_id($instance->id)->order_by('id')->first();
         }
+
         // Disable pages according to instance settings
         if($page == 1 and !$instance->setting->fangate) {
             $this->data['msg'] = 'Fangate page is disabled in settings';
@@ -34,19 +39,17 @@ class Admin_Controller extends Base_Controller {
             $this->data['msg'] = 'Entry form is disabled in settings';
             return View::make('admin.disabled', $this->data);
         }
-        // Get fields
 
+        // Get application fields
         $fields = Field::with('type')
             ->where_instance_id($instance->id)
             ->where_target_id($target->id)
             ->where_page_id($page)
             ->order_by('position', 'asc')
             ->get();
-        
 
         $this->data['instance'] = $instance;
         $this->data['page'] = $page;
-        $this->data['fangate'] = 0;
         $this->data['target_id'] = $target->id;
         $this->data['template_id'] = $template_id;
         $this->data['fields'] = $fields;
@@ -823,63 +826,40 @@ class Admin_Controller extends Base_Controller {
         $instance->instance = $hash;
         $instance->save();
 
+        // Set default country eligibility to all countries
         $allowedcountry = new Allowedcountry();
         $allowedcountry->instance_id = $instance->id;
         $allowedcountry->country_id = 1;
         $allowedcountry->save();
 
+        // Create default target (all ages, all countries, and all languages)
         $target = new Target();
         $target->instance_id = $instance->id;
+        $target->age_id = 1; // Target all ages
+        $target->country_id = 1; // Target all countries
+        $target->language_id = 1; // Target all languages
         $target->title = 'Default';
         $target->active = 1;
         $target->default = 1;
         $target->save();
 
-        // Create instance settings
+        // Create default instance settings
         $setting = new Setting();
         $setting->instance_id = $instance->id;
         $setting->title = Template::find($template_id)->name;
         $setting->css = '';
-        $setting->fangate = 1;
-        $setting->entry_form = 1;
+        $setting->fangate = 1; // Enable fan gate
+        $setting->entry_form = 1; // Enable entry form
         $setting->background = URL::to('templates/'.$template_id.'/background.jpg');
         $setting->template_id = $template_id;
-        $setting->age_id = 1;
+        $setting->age_id = 1; // Set default age eligibility to all ages
         $setting->save();
 
+        // Get application pages and create fields from fakes
         $pages = Page::with('fakes')->get();
         foreach($pages as $page) {
             $this->create_fields_from_fakes($page, $instance->id, $template_id, $target->id);
         }
-
-        /*
-        // Fangate
-        $fakes = DB::table('fakes')->where_in('id', array (1))->order_by('order')->get();
-        $this->create_fields_from_fakes($fakes, $instance->id, 1, $template_id, 'fangate.jpg', $target->id);
-
-        // Entry-form
-        $fakes = DB::table('fakes')->where_in('id', array (2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14))->order_by('order')->get();
-        // $this->create_fields_from_fakes($fakes, $instance->id, 2);
-        $this->create_fields_from_fakes($fakes, $instance->id, 2, $template_id, 'header.jpg', $target->id);
-
-        // Application fields
-        $fakes = DB::table('fakes')->where_in('id', array (15, 16, 17))->order_by('order')->get();
-        //$this->create_fields_from_fakes($fakes, $instance->id, 3);
-        $this->create_fields_from_fakes($fakes, $instance->id, 3, $template_id, 'header.jpg', $target->id);
-        // Sort buttons
-        $fakes = DB::table('fakes')->where_in('id', array (18, 19, 20, 21, 22))->order_by('order')->get();
-        //$this->create_fields_from_fakes($fakes, $instance->id, 3, 0);
-        $this->create_fields_from_fakes($fakes, $instance->id, 3, $template_id, '', $target->id, 0);
-        // Item buttons
-        $fakes = DB::table('fakes')->where_in('id', array (23, 24, 25, 26, 27, 28))->order_by('order')->get();
-        //  $this->create_fields_from_fakes($fakes, $instance->id, 3, 0);
-        $this->create_fields_from_fakes($fakes, $instance->id, 3, $template_id, '', $target->id, 0);
-
-        // Thank you
-        $fakes = DB::table('fakes')->where_in('id', array (29, 30))->order_by('order')->get();
-        //$this->create_fields_from_fakes($fakes, $instance->id, 4);
-        $this->create_fields_from_fakes($fakes, $instance->id, 4, $template_id, 'thankyou.jpg', $target->id);
-        */
     }
 
     private function create_fields_from_fakes($page, $instance_id, $template_id, $target_id) {
