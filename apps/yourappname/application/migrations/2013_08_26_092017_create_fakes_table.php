@@ -8,6 +8,7 @@ class Create_Fakes_Table {
             $table->increments('id');
             $table->integer('type_id');
             $table->integer('template_id');
+            $table->integer('page_id');
             $table->string('label', 64);
             $table->text('value')->nullable();
             $table->text('info')->nullable();
