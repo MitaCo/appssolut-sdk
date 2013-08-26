@@ -10,14 +10,14 @@ if(in_array($fbid, $fbapps)){
 		// fb route
 		define('FB_NAMESPACE', URI::segment(1));
 		//
-		Route::any(FB_NAMESPACE.'/(:any?)', array('as' => 'app_show', 'uses' => 'home@index'));
+		Route::any(FB_NAMESPACE.'/(:any?)', array('as' => 'app_load', 'uses' => 'home@index'));
 		Route::post(FB_NAMESPACE.'/(:any)/send', array('before' => 'csrf', 'as' => 'app_create_entry', 'uses' => 'home@send'));
 
 	});
 }else{
 	// minisite or mobile access
 	// Home
-	Route::any('(:any)', array('as' => 'app_show', 'uses' => 'home@index'));
+	Route::any('(:any)', array('as' => 'app_load', 'uses' => 'home@index'));
 	// Entries
 	Route::post('(:any)/send', array('before' => 'csrf', 'as' => 'app_create_entry', 'uses' => 'home@send'));
 }

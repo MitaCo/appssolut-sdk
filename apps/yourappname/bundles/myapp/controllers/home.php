@@ -34,7 +34,7 @@ class Myapp_Home_Controller extends Sdk_Controller {
         $this->data['instance'] = $instance;
         $this->data['page'] = $page_id;
         $this->data['fields'] = $fields;
-        $this->data['invitelink'] = $fbuser->getInviteLink('You are invited for the voting');
+        $this->data['invitelink'] = $fbuser->getInviteLink('Invite your Friends!');
 
         return View::make('home.index', $this->data);
     }

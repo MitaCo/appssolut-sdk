@@ -13,21 +13,20 @@ class Home_Controller extends Sdk_Controller {
     }
 
     public function get_index($hash = null) {
-        $instance = Instance::with('setting')->where_instance($this->getinstance($hash))->first();
+        //$instance = Instance::with('setting')->where_instance($this->getinstance($hash))->first();
+        $instance = Instance::with('setting')->where_instance($hash)->first();
         if (empty($instance)) {
             return View::make('notactive');
         }
 
         // Get current facebook user
         $fbuser = new Fbdata_Controller;
-        // Check if there is a localization for the current user's language settings
-        $fbuser_age_id = Age::where_value($fbuser->getAge())->first()->id;
-        $fbuser_country_id = Country::where_code(strtoupper($fbuser->getCountry()))->first()->id;
-        $fbuser_language_id = Language::where_langcode($fbuser->getlocale())->first()->id;
-        $target = $this->find_target_for($instance, $fbuser_age_id, $fbuser_country_id, $fbuser_language_id);
+
+        // Check if there is a localization for the current user's language setting
+        $target = $this->find_target_for($instance, $fbuser);
 
         // Check if user is eligible for the campaign
-        $is_eligible = $this->check_eligibility($instance, $fbuser_age_id, $fbuser_country_id);
+        $is_eligible = $this->check_eligibility($instance, $fbuser);
         if (!$is_eligible) {
             return View::make('noteligible')->with('eligibility_message', Session::get('eligibility_message'));
         }
@@ -49,10 +48,7 @@ class Home_Controller extends Sdk_Controller {
             $page_id = 2;
         } else {
             $page_id = 3;
-
-            if (empty($uid)) {
-                return $fbuser->makelogin();
-            }
+            return Redirect::to_route('app_show', array($instance->instance, $page_id));
         }
             $fields = Field::with('type')
                 ->where_instance_id($instance->id)
@@ -84,10 +80,7 @@ class Home_Controller extends Sdk_Controller {
             return $fbuser->makelogin();
         }
         // Check if there is a localization for the current user's language settings
-        $fbuser_age_id = Age::where_value($fbuser->getAge())->first()->id;
-        $fbuser_country_id = Country::where_code(strtoupper($fbuser->getCountry()))->first()->id;
-        $fbuser_language_id = Language::where_langcode($fbuser->getlocale())->first()->id;
-        $target = $this->find_target_for($instance, $fbuser_age_id, $fbuser_country_id, $fbuser_language_id);
+        $target = $this->find_target_for($instance, $fbuser);
 
         $page_id = 3;
         $target_id = $target->id;
@@ -153,12 +146,12 @@ class Home_Controller extends Sdk_Controller {
         }
         $validation = Validator::make($postdata, $rules);
         if ($validation->fails()) {
-            return Redirect::to_route('app_show', $instance->instance)->with_errors($validation->errors)->with_input();
+            return Redirect::to_route('app_load', $instance->instance)->with_errors($validation->errors)->with_input();
         }
 
         $this->save_results($postdata, $instance, 2, $uid, $target_id);
 
-        return Redirect::to_route('app_show', $instance->instance);
+        return Redirect::to_route('app_load', $instance->instance);
     }
 
     private function save_results($results, $instance, $page_id, $uid, $target_id = 1) {
@@ -192,7 +185,12 @@ class Home_Controller extends Sdk_Controller {
     }
 
     // Find most suitable target based on users input
-    private function find_target_for($instance, $fbuser_age_id, $fbuser_country_id, $fbuser_language_id) {
+    private function find_target_for($instance, $fbuser) {
+        // Get database ID's for fbuser age, country, and language
+        $fbuser_age_id = Age::where_value($fbuser->getAge())->first()->id;
+        $fbuser_country_id = Country::where_code(strtoupper($fbuser->getCountry()))->first()->id;
+        $fbuser_language_id = Language::where_langcode($fbuser->getlocale())->first()->id;
+
         // Get all targets based on the user's age
         $targets = Target::where_instance_id($instance->id)->where('age_id', '<=', $fbuser_age_id)->where_active(1)->order_by('age_id', 'desc')->get();
         // Get targets based on country
@@ -236,7 +234,11 @@ class Home_Controller extends Sdk_Controller {
         return $targets[0];
     }
 
-    private function check_eligibility($instance, $fbuser_age_id, $fbuser_country_id) {
+    private function check_eligibility($instance, $fbuser) {
+        // Get database ID's for fbuser age and country
+        $fbuser_age_id = Age::where_value($fbuser->getAge())->first()->id;
+        $fbuser_country_id = Country::where_code(strtoupper($fbuser->getCountry()))->first()->id;
+
         $min_age_id = $instance->setting->age_id;
         if ($fbuser_age_id < $min_age_id) {
             $age_value = Age::find($min_age_id)->value;

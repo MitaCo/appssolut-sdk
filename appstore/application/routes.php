@@ -1,9 +1,9 @@
 <?php
 
-Route::get('/', array('as' => 'manage_apps', 'uses' => 'appstore::manager@index'));
-Route::get('manager/(:num)/edit/(:num?)/(:num?)', array('as' => 'edit_manager', 'uses' => 'appstore::manager@edit'));
-Route::get('manager/(:num)/detail', array('as' => 'detail_manager', 'uses' => 'appstore::manager@detail'));
-Route::get('manager/(:num)/add/(:any?)', array('as' => 'try_app', 'uses' => 'appstore::manager@add'));
+Route::get('manager', array('as' => 'manage_apps', 'uses' => 'manager@index'));
+Route::get('manager/(:num)/edit/(:num?)/(:num?)', array('as' => 'edit_manager', 'uses' => 'manager@edit'));
+Route::get('manager/(:num)/detail', array('as' => 'detail_manager', 'uses' => 'manager@detail'));
+Route::get('manager/(:num)/add/(:any?)', array('as' => 'try_app', 'uses' => 'manager@add'));
 
 Route::filter('before', function()
 {    
