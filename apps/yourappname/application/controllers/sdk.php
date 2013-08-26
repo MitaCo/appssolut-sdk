@@ -88,6 +88,10 @@ class Sdk_Controller extends Base_Controller {
         
     }
     private function get_instanceHash($hash) {
+        //  if empty hash from redirect
+        if (empty($hash)) {
+            $hash = Session::get('hashid', null);
+        }
         // get from address suppose to be only out of facebook or for preview porpuse
         $app = App::where('app_user_apps_publish_page_id', '=', $hash)->where('app_apps_application_id', '=', APPSOLUTE_APPID)->first();
         // dd($app);
