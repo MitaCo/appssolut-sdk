@@ -11,34 +11,32 @@ class Admin_Controller extends Base_Controller {
         //
     }
 
-    // Preview in manager
-    public function get_preview($hash = null, $page = 1, $template_id = 1, $target = 1) {
-
-        // Verify and get instance
+    // Appstore manager iFrame preview
+    public function get_preview($hash = null, $page = 1, $template_id = 1, $target_id = 1) {
+        // Verify application instance
         if (empty($hash)) {
-            return Response::json(array('message' => 'Instance not found'), 400);
+            return Response::json(array('message' => 'Instance not found.'), 400);
         }
         $instance = Instance::with('setting')->where_instance($hash)->first();
-        if(empty($instance)) {
+
+        // Create new instance if it does not exist
+        if (empty($instance)) {
             $this->initialize_instance($hash, $template_id);
             $instance = Instance::with('setting')->where_instance($hash)->first();
         }
 
-        // Verify and get target
-        $target = Target::where_instance_id($instance->id)->where_id($target)->first();
-        if (empty($target)) {
-            $target = Target::where_instance_id($instance->id)->order_by('id')->first();
-        }
-
-        // Disable pages according to instance settings
-        if($page == 1 and !$instance->setting->fangate) {
-            $this->data['msg'] = 'Fangate page is disabled in settings';
+        // Show message if fangate and/or entry form is disabled
+        if ($page == 1 and !$instance->setting->fangate) {
+            $this->data['msg'] = 'Fan gate page is disabled in settings';
             return View::make('admin.disabled', $this->data);
         }
-        if($page == 2 and !$instance->setting->entry_form) {
+        if ($page == 2 and !$instance->setting->entry_form) {
             $this->data['msg'] = 'Entry form is disabled in settings';
             return View::make('admin.disabled', $this->data);
         }
+
+        // Get target(ing)
+        $target = $this->get_target($instance->id, $target_id);
 
         // Get application fields
         $fields = Field::with('type')
@@ -50,112 +48,60 @@ class Admin_Controller extends Base_Controller {
 
         $this->data['instance'] = $instance;
         $this->data['page'] = $page;
-        $this->data['target_id'] = $target->id;
         $this->data['template_id'] = $template_id;
+        $this->data['target_id'] = $target->id;
         $this->data['fields'] = $fields;
 
         return View::make('admin.preview', $this->data);
     }
 
-    public function get_restore($hash = null, $page = 1, $template_id = 1, $target_id = 1) {
-        $instance = Instance::where_instance($hash)->first();
-        if (empty($instance)) {
-            return Response::json(array('message' => 'Instance not found'), 400);
-        }
-        $fields = Field::where_instance_id($instance->id)->get();
-        foreach ($fields as $field) {
-            $field->storages()->delete();
-            $field->delete();
-        }
-        $instance->allowedcountries()->delete();
-        $instance->targets()->delete();
-        $instance->entries()->delete();
-        $instance->setting()->delete();
-        $instance->delete();
-
-        Session::flash('message', 'Application restored. ');
-        return Response::json(array('message' => 'Application restored.'), 200);
-    }
-
-    public function get_drag_drop($hash = null, $page = 1, $template_id = 1, $target = 1) {
+    // Drag and drop fields
+    public function get_drag_drop($hash = null, $page = 1, $template_id = 1, $target_id = 1) {
+        // Verify application instance
         if (empty($hash)) {
-            return Response::json(array('message' => 'Instance not found'), 400);
+            return Response::json(array('message' => 'Instance not found.'), 400);
         }
         $instance = Instance::with('setting')->where_instance($hash)->first();
-        if(empty($instance)) {
-            return Response::json(array('message' => 'Instance not found'), 400);
+        if (empty($instance)) {
+            return Response::json(array('message' => 'Instance not found.'), 400);
         }
-        $target = Target::where_instance_id($instance->id)->where_id($target)->first();
-        if (empty($target)) {
-            $target = Target::where_instance_id($instance->id)->order_by('id')->first();
-        }
-        // Disable pages according to instance settings
-        if($page == 1 and !$instance->setting->fangate) {
-            $this->data['msg'] = 'Fangate page is disabled in settings';
+
+        // Show message if fangate and/or entry form is disabled
+        if ($page == 1 and !$instance->setting->fangate) {
+            $this->data['msg'] = 'Fan gate page is disabled in settings';
             return View::make('admin.disabled', $this->data);
         }
+        if ($page == 2 and !$instance->setting->entry_form) {
+            $this->data['msg'] = 'Entry form is disabled in settings';
+            return View::make('admin.disabled', $this->data);
+        }
+
+        $target = $this->get_target($instance->id, $target_id);
 
         $fields = Field::with('type')
             ->where_instance_id($instance->id)
             ->where_target_id($target->id)
             ->where_page_id($page)
-            ->where_null('button')
             ->order_by('position', 'asc')
             ->get();
 
-        // Exclude developer anchor and button
-        $this->data['types'] = Type::where_not_in('id', array(19, 20))->get();
-
         $this->data['instance'] = $instance;
         $this->data['page'] = $page;
+        $this->data['template_id'] = $template_id;
         $this->data['target_id'] = $target->id;
         $this->data['fields'] = $fields;
 
         return View::make('admin.fields.manage', $this->data);
     }
 
-    // Export results as .xls
-    public function get_export($hash = null, $page = 1) {
-        if (empty($hash)) {
-            return Response::json(array('message' => 'Instance not found'), 400);
-        }
-        $instance = Instance::where_instance($hash)->first();
-        if (empty($instance)) {
-            return Response::json(array('message' => 'Instance not found'), 400);
-        }
-
-        $data = array();
-        $targets = Target::with('age')->with('country')->with('language')->where_instance_id($instance->id)->order_by('id')->get();
-        foreach($targets as $target) {
-            $data[$target->id]['target'] = $target;
-            $data[$target->id]['entries'] = Entry::with('storages')->where_instance_id($instance->id)->where_page_id(3)->where_target_id($target->id)->get();
-            $data[$target->id]['labels'] = array ();
-            $data[$target->id]['values'] = array ();
-            foreach($data[$target->id]['entries'] as $entry) {
-                foreach($entry->storages as $storage) {
-                    $data[$target->id]['labels'][$storage->field_id] = $storage->label;
-                    $data[$target->id]['values'][$entry->id][$storage->field_id] = $storage->value;
-                }
-            }
-        }
-
-        $this->data['instance'] = $instance;
-        $this->data['table_data'] = $data;
-
-        $table = View::make('admin.export', $this->data);
-        $filename = $hash . '_' . date('Y-m-d-H-i-s') . '.xls';
-        header("Content-type: application/vnd.ms-excel; charset=utf-8");
-        header("Content-Disposition: attachment; filename=$filename");
-
-        return $table;
-    }
-
     public function get_info($hash, $page, $setting_type) {
+        // Verify application instance
         $instance = Instance::with('setting')->where_instance($hash)->first();
         if (empty($instance)) {
-            return Response::json(array('message' => 'Instance not found'), 400);
+            return Response::json(array('message' => 'Instance not found.'), 400);
         }
 
+        // Get content for type of info
         switch ($setting_type) {
 
             case 'privacy':
@@ -181,18 +127,78 @@ class Admin_Controller extends Base_Controller {
         return View::make('showinfo', $this->data);
     }
 
-
-    /******************************************************** FIELDS ********************************************************/
-    // Right side bar in manager
-    public function get_fields($hash, $page, $target = 1) {
+    // Export button
+    public function get_export($hash = null, $page = 1) {
+        // Verify application instance
+        if (empty($hash)) {
+            return Response::json(array('message' => 'Instance not found.'), 400);
+        }
         $instance = Instance::with('setting')->where_instance($hash)->first();
         if (empty($instance)) {
-            return Response::json(array('message' => 'Instance not found'), 400);
+            return Response::json(array('message' => 'Instance not found.'), 400);
         }
-        $target = Target::where_instance_id($instance->id)->where_id($target)->first();
-        if (empty($target)) {
-            $target = Target::where_instance_id($instance->id)->order_by('id')->first();
+
+        // Prepare entry form data for table
+        $data = array();
+        $targets = Target::with('age')->with('country')->with('language')->where_instance_id($instance->id)->order_by('id')->get();
+        foreach ($targets as $target) {
+            $data[$target->id]['target'] = $target;
+            $data[$target->id]['entries'] = Entry::with('storages')->where_instance_id($instance->id)->where_page_id(3)->where_target_id($target->id)->get();
+            $data[$target->id]['labels'] = array ();
+            $data[$target->id]['values'] = array ();
+            foreach ($data[$target->id]['entries'] as $entry) {
+                foreach ($entry->storages as $storage) {
+                    $data[$target->id]['labels'][$storage->field_id] = $storage->label;
+                    $data[$target->id]['values'][$entry->id][$storage->field_id] = $storage->value;
+                }
+            }
         }
+
+        $this->data['instance'] = $instance;
+        $this->data['table_data'] = $data;
+
+        $table = View::make('admin.export', $this->data);
+        $filename = $hash . '_' . date('Y-m-d-H-i-s') . '.xls';
+        header("Content-type: application/vnd.ms-excel; charset=utf-8");
+        header("Content-Disposition: attachment; filename=$filename");
+
+        // Download .xls file
+        return $table;
+    }
+
+    // Restore application to original settings
+    public function get_restore($hash = null, $page = 1, $template_id = 1, $target_id = 1) {
+        // Verify application instance
+        $instance = Instance::where_instance($hash)->first();
+        if (empty($instance)) {
+            return Response::json(array('message' => 'Instance not found.'), 400);
+        }
+
+        $fields = Field::where_instance_id($instance->id)->get();
+        foreach ($fields as $field) {
+            $field->storages()->delete();
+            $field->delete();
+        }
+        $instance->allowedcountries()->delete();
+        $instance->targets()->delete();
+        $instance->entries()->delete();
+        $instance->setting()->delete();
+        $instance->delete();
+
+        Session::flash('message', 'Application restored.');
+
+        return Response::json(array('message' => 'Application restored.'), 200);
+    }
+
+    // Application field list in manager right sidebar
+    public function get_fields($hash, $page, $target_id = 1) {
+        // Verify application instance
+        $instance = Instance::with('setting')->where_instance($hash)->first();
+        if (empty($instance)) {
+            return Response::json(array('message' => 'Instance not found.'), 400);
+        }
+
+        $target = $this->get_target($instance->id, $target_id);
 
         $fields = Field::with('type')
             ->where_instance_id($instance->id)
@@ -203,52 +209,45 @@ class Admin_Controller extends Base_Controller {
 
         $this->data['instance'] = $instance;
         $this->data['page'] = $page;
-        $this->data['fields'] = $fields;
         $this->data['target_id'] = $target->id;
+        $this->data['fields'] = $fields;
 
         return View::make('admin.fields.list', $this->data);
     }
 
-    public function get_edit_field($hash, $page, $field_id, $target) {
-        $instance = Instance::where_instance($hash)->first();
-        if(empty($instance)) {
-            return Response::json(array('message' => 'Instance not found'), 400);
+    // Edit field
+    public function get_edit_field($hash, $page, $field_id, $target_id) {
+        // Verify application instance
+        $instance = Instance::with('setting')->where_instance($hash)->first();
+        if (empty($instance)) {
+            return Response::json(array('message' => 'Instance not found.'), 400);
         }
-        $target = Target::where_instance_id($instance->id)->where_id($target)->first();
-        if (empty($target)) {
-            $target = Target::where_instance_id($instance->id)->order_by('id')->first();
-        }
+
+        $target = $this->get_target($instance->id, $target_id);
+
+        // Find field to edit
         $field = Field::with('type')->where_instance_id($instance->id)->where_id($field_id)->order_by('position', 'asc')->first();
+        if (empty($field)) {
+            return Response::json(array('message' => 'Field not found.'), 400);
+        }
 
-        $this->data['instance'] = $instance;
-        $this->data['page'] = $page;
-        $this->data['field'] = $field;
-        $this->data['target_id'] = $target->id;
-
-
+        // Enable editing options based on field type
         $this->data['terms_msg'] = false;
         $this->data['label'] = false;
         $this->data['value'] = false;
         $this->data['required'] = false;
         $this->data['colorpicker'] = false;
-        switch($field->type->id) {
 
+        switch($field->type->id) {
             case 1: // header-banner
+                // Images have a special edit-view
                 return View::make('admin.fields.edit_banner', $this->data);
                 break;
-
             case 2: // text-header-2
             case 3: // text-header-3
             case 4: // text-paragraph
                 $this->data['value'] = true;
                 break;
-            case 18: // submit-button
-            case 19: // developer-anchor
-            case 20: // developer-button
-                $this->data['value'] = true;
-                $this->data['colorpicker'] = true;
-                break;
-
             case 6: // input-string
             case 7: // input-number
             case 8: // input-email
@@ -264,68 +263,77 @@ class Admin_Controller extends Base_Controller {
                 $this->data['value'] = true;
                 $this->data['required'] = true;
                 break;
-            case 21: // input-accept-privacy
-            case 22: // input-accept-terms
-            case 23: // input-accept-rules
+            case 18: // submit-button
+                $this->data['value'] = true;
+                $this->data['colorpicker'] = true;
+                break;
+            case 19: // input-accept-privacy
+            case 20: // input-accept-terms
+            case 21: // input-accept-rules
                 $this->data['terms_msg'] = true;
                 $this->data['value'] = true;
                 $this->data['required'] = true;
                 break;
-
             default:
                 break;
         }
 
+        $this->data['instance'] = $instance;
+        $this->data['page'] = $page;
+        $this->data['target_id'] = $target->id;
+        $this->data['field'] = $field;
+
         return View::make('admin.fields.edit', $this->data);
     }
 
-    public function put_update_field($hash, $page, $field_id, $target = 1) {
-        $instance = Instance::where_instance($hash)->first();
-        if(empty($instance)) {
-            return Response::json(array('message' => 'Instance not found'), 400);
+    public function put_update_field($hash, $page, $field_id, $target_id = 1) {
+        // Verify application instance
+        $instance = Instance::with('setting')->where_instance($hash)->first();
+        if (empty($instance)) {
+            return Response::json(array('message' => 'Instance not found.'), 400);
         }
-        $target = Target::where_instance_id($instance->id)->where_id($target)->first();
-        if (empty($target)) {
-            $target = Target::where_instance_id($instance->id)->order_by('id')->first();
-        }
+
+        $target = $this->get_target($instance->id, $target_id);
+
         $field = Field::where_instance_id($instance->id)->find($field_id);
-        if(empty($field)) {
-            return Response::json(array('message' => 'Field not found'), 400);
+        if (empty($field)) {
+            return Response::json(array('message' => 'Field not found.'), 400);
         }
 
         $postdata = Input::all();
-        foreach($postdata as $input) {
-            if(is_array($input)) {
+
+        // Check if data contains an image and save it
+        foreach ($postdata as $input) {
+            if (is_array($input)) {
                 $url = Helper::upload('value', $input, 'IMAGE');
                 if (empty($url)) {
-                    return Response::json(array('message' => 'Upload failed. Try another format. '), 400);
+                    return Response::json(array('message' => 'Upload failed. Try another format.'), 400);
                 }
                 $field->value = $url;
                 unset($postdata['value']);
             }
         }
 
-        //update color of "button"
+        // Save button color
         if (!empty($postdata['property'])){
             $field->property = $postdata['colorpicker'];
             unset($postdata['colorpicker']);
             unset($postdata['property']);
         }
 
+        // Save rest of data
         $field->fill($postdata);
-        //$field->target_id = $target->id;
-        $field->page_id = $page;
-
         if ($field->save()) {
-            Session::flash('message', $field->label.' updated. ');
-            return Response::json(array('message' => $field->label.' updated. '), 200);
+            Session::flash('message', $field->label.' updated.');
+            return Response::json(array('message' => $field->label.' updated.'), 200);
         }
         else {
-            Session::flash('message', 'Error occurred, please try again. ');
-            return Response::json(array('message' => 'Error occurred, please try again. '), 400);
+            Session::flash('message', 'Error occurred, please try again.');
+            return Response::json(array('message' => 'Error occurred, please try again.'), 400);
         }
     }
 
+    // Drag and drop - switch position of 2 fields
     public function put_reorder_fields($hash, $page) {
         $postdata = Input::all();
 
@@ -340,70 +348,62 @@ class Admin_Controller extends Base_Controller {
         $field_2->save();
     }
 
-    // ****************************** DRAG AND DROP CREATE FIELD ****************************** \\
-    public function post_create_draggable_field($hash, $page, $target = 1) {
-        $instance = Instance::where_instance($hash)->first();
-        $target = Target::where_instance_id($instance->id)->where_id($target)->first();
-        if (empty($target)) {
-            $target = Target::where_instance_id($instance->id)->order_by('id')->first();
+    // Drag and drop - Create new field
+    public function post_create_draggable_field($hash, $page, $target_id = 1) {
+        // Verify application instance
+        $instance = Instance::with('setting')->where_instance($hash)->first();
+        if (empty($instance)) {
+            return Response::json(array('message' => 'Instance not found.'), 400);
         }
+
+        $target = $this->get_target($instance->id, $target_id);
+
         $postdata = Input::all();
+
+        // Get type of new field
         $type = Type::where_id($postdata['type_id'])->first();
 
+        // Set default field value based the type
         $label = $type->name;
         $value = $type->name;
         $property = NULL;
 
         switch($type->id) {
-
             case 1: // header-banner
                 $value = 'img/default_banner.jpg';
                 break;
-
             case 2: // text-header-2
             case 3: // text-header-3
-                $value = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
-                break;
-            case 4: // text-paragraph
                 $value = 'Lorem ipsum dolor sit amet';
                 break;
-
+            case 4: // text-paragraph
+                $value = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
+                break;
             case 18: // submit-button
                 $value = 'Submit';
+                $property = '#A1BF2E';
                 break;
-
-            case 19: // developer-anchor
-                $value = '#';
-                break;
-
-            case 20: // developer-button
-                $value = 'Click';
-                break;
-
-            case 21: // input-accept-privacy
+            case 19: // input-accept-privacy
                 $value = 'I have read and accept the Privacy Policy';
                 break;
-
-            case 22: // input-accept-terms
+            case 20: // input-accept-terms
                 $value = 'I have read and accept the Terms and Conditions';
                 break;
-
-            case 23: // input-accept-rules
+            case 21: // input-accept-rules
                 $value = 'I have read and agree to the Official Rules';
                 break;
-
             default:
                 break;
         }
 
-        // Update positions for fields to make space for the new field
+        // Update positions of other fields to make space for the new field
         $fields = Field::where_instance_id($instance->id)
             ->where_target_id($target->id)
             ->where_page_id($page)
             ->where('position', '>=', $postdata['position'])
             ->get();
 
-        foreach($fields as $field) {
+        foreach ($fields as $field) {
             $field->position = $field->position + 1;
             $field->save();
         }
@@ -412,17 +412,17 @@ class Admin_Controller extends Base_Controller {
         $field = new Field();
         $field->instance_id = $instance->id;
         $field->type_id = $type->id;
-        $field->fangate = 0;
+        $field->template_id = $instance->template_id;
+        $field->page_id = $page;
+        $field->target_id = $target->id;
         $field->label = $label;
         $field->value = $value;
         $field->position = $postdata['position'];
+        $field->property = $property;
+        $field->visible = 1;
         $field->visible = 1;
         $field->editable = 1;
         $field->required = 1;
-        $field->page_id = $page;
-        $field->property = $property;
-        $field->template_id = $instance->template_id;
-        $field->target_id = $target->id;
 
         if ($field->save()) {
             return Response::json(array('message' => 'Field created', 'field_id' => $field->id), 200);
@@ -451,7 +451,7 @@ class Admin_Controller extends Base_Controller {
                 ->where('position', '<', $old_pos)
                 ->get();
 
-            foreach($fields as $field) {
+            foreach ($fields as $field) {
                 $field->position = $field->position + 1;
                 $field->save();
             }
@@ -463,7 +463,7 @@ class Admin_Controller extends Base_Controller {
                 ->where('position', '>', $old_pos)
                 ->get();
 
-            foreach($fields as $field) {
+            foreach ($fields as $field) {
                 $field->position = $field->position - 1;
                 $field->save();
             }
@@ -482,7 +482,7 @@ class Admin_Controller extends Base_Controller {
 
     public function delete_destroy_field($hash, $page, $target = 1) {
         $instance = Instance::where_instance($hash)->first();
-        if(empty($instance)) {
+        if (empty($instance)) {
             return Response::json(array('message' => 'Instance not found'), 400);
         }
         $target = Target::where_instance_id($instance->id)->where_id($target)->first();
@@ -492,11 +492,11 @@ class Admin_Controller extends Base_Controller {
         $postdata = Input::all();
         $field = Field::where_instance_id($instance->id)->find($postdata['field_id']);
 
-        if(empty($field)) {
+        if (empty($field)) {
             return Response::json(array('message' => 'Field not found'), 400);
         }
 
-        if($field->delete()) {
+        if ($field->delete()) {
             Session::flash('message', 'Field deleted. ');
 
             $fields = Field::where_instance_id($instance->id)->where_page_id($page)->where_target_id($target->id)->order_by('position', 'asc')->get();
@@ -518,7 +518,7 @@ class Admin_Controller extends Base_Controller {
     /******************************************************** SETTINGS ******************************************************/
     public function get_edit_setting($hash, $page, $type, $target) {
         $instance = Instance::with('setting')->where_instance($hash)->first();
-        if(empty($instance)) {
+        if (empty($instance)) {
             return Response::json(array('message' => 'Instance not found'), 400);
         }
 
@@ -540,7 +540,7 @@ class Admin_Controller extends Base_Controller {
 
             case 'date':
                 $tzlist = DateTimeZone::listIdentifiers(DateTimeZone::ALL);
-                foreach($tzlist as $tz) {
+                foreach ($tzlist as $tz) {
                     $timezones[$tz] = $tz;
                 }
                 $this->data['timezones'] = $timezones;
@@ -559,16 +559,16 @@ class Admin_Controller extends Base_Controller {
 
     public function put_update_setting($hash, $page) {
         $instance = Instance::where_instance($hash)->first();
-        if(empty($instance)) {
+        if (empty($instance)) {
             return Response::json(array('message' => 'Instance not found'), 400);
         }
 
         $postdata = Input::all();
-        if(empty($postdata)) return;
+        if (empty($postdata)) return;
         $success = false;
         $message = 'An error occurred, please try again. ';
         $returnval = null;
-        foreach($postdata as $key => $input) {
+        foreach ($postdata as $key => $input) {
 
             switch($key) {
 
@@ -767,7 +767,7 @@ class Admin_Controller extends Base_Controller {
 
     public function put_update_target($hash, $target_id) {
         $instance = Instance::where_instance($hash)->first();
-        if(empty($instance)) {
+        if (empty($instance)) {
             return Response::json(array('message' => 'Instance not found'), 400);
         }
 
@@ -860,7 +860,7 @@ class Admin_Controller extends Base_Controller {
 
         // Get application pages and create fields from fakes
         $pages = Page::with('fakes')->get();
-        foreach($pages as $page) {
+        foreach ($pages as $page) {
             $this->create_fields_from_fakes($page, $instance->id, $template_id, $target->id);
         }
     }
@@ -924,6 +924,14 @@ class Admin_Controller extends Base_Controller {
             $field->save();
         }
 
+        return $target;
+    }
+
+    private function get_target($instance_id, $target_id) {
+        $target = Target::where_instance_id($instance_id)->where_id($target_id)->first();
+        if (empty($target)) {
+            $target = Target::where_instance_id($instance_id)->order_by('id')->first();
+        }
         return $target;
     }
 }
