@@ -13,27 +13,23 @@ class Graph_Controller extends Base_Controller {
             return Response::json(array('message' => 'Instance not found'), 400);
         }
 
-        $items = Item::forResults($instance->id);
-        $all_items = Item::where_instance_id($instance->id)->get();
-        $votes = array ();
-        foreach($all_items as $item) {
-            $votes[$item->id] = Vote::where_instance_id($instance->id)->where_item_id($item->id)->count();
-        }
-        $last_vote = array ();
-        foreach($all_items as $item) {
-            $vote = Vote::where_instance_id($instance->id)->where_item_id($item->id)->order_by('created_at', 'desc')->first();
-            if (empty($vote)) {
-                $last_vote[$item->id] = '';
-            } else {
-                $last_vote[$item->id] = $vote->created_at;
+        $data = array();
+        $targets = Target::with('age')->with('country')->with('language')->where_instance_id($instance->id)->order_by('id')->get();
+        foreach($targets as $target) {
+            $data[$target->id]['target'] = $target;
+            $data[$target->id]['entries'] = Entry::with('storages')->where_instance_id($instance->id)->where_page_id(3)->where_target_id($target->id)->get();
+            $data[$target->id]['labels'] = array ();
+            $data[$target->id]['values'] = array ();
+            foreach($data[$target->id]['entries'] as $entry) {
+                foreach($entry->storages as $storage) {
+                    $data[$target->id]['labels'][$storage->field_id] = $storage->label;
+                    $data[$target->id]['values'][$entry->id][$storage->field_id] = $storage->value;
+                }
             }
-
         }
 
         $this->data['instance'] = $instance;
-        $this->data['items'] = $items;
-        $this->data['votes'] = $votes;
-        $this->data['last_vote'] = $last_vote;
+        $this->data['table_data'] = $data;
 
         return View::make('graph.index', $this->data);
     }

@@ -6,25 +6,21 @@
         <thead class="cf">
             <tr>
                 <th scope="col">Application</th>
-                <th scope="col">Facebook link</th>
-                <th scope="col">Link to Mobile</th>
+                <th scope="col">Link to Preview</th>
                 <th scope="col">Preview/Edit</th>
                 <th scope="col">Campaign Details</th>
             </tr>
         </thead>
         <tbody>
             <?php $pack = 0; ?>
+            
             @foreach ($applist as $key => $app)
             <tr>                
-                <td >{{ (!empty($app->tab_title) ? $app->tab_title : $app->app_app->app_apps_name)  }}</td>
+                <td ></td>
                 
-                @if(!empty($app->fblink))
-                <td ><a href="{{ $app->fblink }}" class="detail" target="_blank">View on <b>{{ $app->fbpage_name}}</b></a></td>
-                @else
-                <td ><a href="{{ URL::to_route('man_getpages', array($app->app_user_apps_publish_page_id )) }}" class="preview">Publish Now</a></td>
-                @endif
+                
                 @if ($app->status == 'A')
-                <td><a href="{{ URL::base() }}/apps/{{ $app->app_app->app_apps_application()->first()->app_folder }}/{{ $app->app_user_apps_publish_page_id }}" class="detail" target="_blank" >Link to Mobile</a></td>
+                <td><a href="{{ URL::base() }}/apps/{{ $app->app_apps_application()->first()->app_folder }}/{{ $app->app_user_apps_publish_page_id }}" class="detail" target="_blank" >Link to Mobile</a></td>
                 @else
                     <td >Buy to get Link</td>
                 @endif

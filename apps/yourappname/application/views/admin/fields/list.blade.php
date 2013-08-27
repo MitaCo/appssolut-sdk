@@ -29,14 +29,7 @@
 </h4>
 @endif
 
-@if($page == 4)
-<h4>
-    Thank You Page Settings
-    <a class="explain" data-content="This Page appears at the end of your application. When users complete the entire task and fulfill all required information in your application, use this page to thank them for participating." data-original-title="Thank You Page Settings">?</a>
-</h4>
-@endif
-
-@if(($page == 1 and $instance->setting->fangate) or ($page == 2 and $instance->setting->entry_form) or ($page == 3) or ($page == 4))
+@if(($page == 1 and $instance->setting->fangate) or ($page == 2 and $instance->setting->entry_form) or ($page > 2))
 <ul>
     @foreach($fields as $field)
     <li class="glyphicons app-{{$field->Type->type}}" id="field_{{$field->id}}">
@@ -62,81 +55,12 @@
 </ul>
 @endif
 
-
-@if ($page == 3)
-<h4>
-    Edit application buttons
-    <a class="explain" data-content="Use this feature to edit the buttons on your application. You can edit the button text by clicking on a button and entering the preferred value, or you can edit the button color by using the color picker." data-original-title="Edit application buttons">?</a>
-</h4>
-<ul>
-    @foreach($sort_buttons as $sort_button)
-    <li class="glyphicons charts">
-        <a href="{{ URL::to_route('app_edit_field', array ($instance->instance, $page, $sort_button->id, $target_id)) }}"><i></i><span>{{ $sort_button->label}}</span></a>
-        @if(!empty($sort_button->info))
-        <a class="explain" data-content="{{ $sort_button->info }}" data-original-title="{{ $sort_button->label }}">?</a>
-        @endif
-    </li>
-    @endforeach
-    @foreach($item_buttons as $item_button)
-    <li class="glyphicons pencil">
-        <a href="{{ URL::to_route('app_edit_field', array ($instance->instance, $page, $item_button->id, $target_id)) }}"><i></i><span>{{ $item_button->label}}</span></a>
-        @if(!empty($item_button->info))
-        <a class="explain" data-content="{{ $item_button->info }}" data-original-title="{{ $item_button->label }}">?</a>
-        @endif
-    </li>
-    @endforeach
-
-    <h4>
-        Edit, add & remove products
-        <a class="explain" data-content="Use this features to add new product for voting or to edit the already posted products." data-original-title="Edit, add and remove products">?</a>
-    </h4>
-    @foreach($items as $key => $item)
-    <li class="glyphicons pencil">
-        <a href="{{ URL::to_route('app_edit_item', array($instance->instance, $item->id)) }}"><i></i><span>Product {{ $key + 1 }}:&nbsp;&nbsp;{{ $item->title }}</span></a>
-        @if(!empty($item->info))
-        <a class="explain" data-content="{{ $item->info }}" data-original-title="{{ $item->title }}">?</a>
-        @endif
-    </li>
-    @endforeach
-    <li class="glyphicons circle_plus">
-        <a href="{{ URL::to_route('app_new_item', array ($instance->instance)) }}"><i></i><span>Add new product</span></a>
-        <a class="explain" data-content="This feature allows you to add new products for voting.  Use this feature to post a photo or video of your product, edit your product description and price." data-original-title="Add new product">?</a>
-    </li>
-</ul>
-@endif
-@if ($page == 4)
-<h4>
-    Edit application buttons
-    <a class="explain" data-content="Use this feature to edit the buttons on your application. You can edit the button text by clicking on a button and entering the preferred value, or you can edit the button color by using the color picker." data-original-title="Edit application buttons">?</a>
-</h4>
-<ul>
-    @foreach($sort_buttons as $sort_button)
-    <li class="glyphicons charts">
-        <a href="{{ URL::to_route('app_edit_field', array ($instance->instance, $page, $sort_button->id, $target_id)) }}"><i></i><span>{{ $sort_button->label}}</span></a>
-        @if(!empty($field->info))
-        <a class="explain" data-content="{{ $sort_button->info }}" data-original-title="{{ $sort_button->label }}">?</a>
-        @endif
-    </li>
-    @endforeach
-</ul>
-@endif
-
-@if(($page == 2 and $instance->setting->entry_form) or ($page == 3))
+@if(($page == 2 and $instance->setting->entry_form) or ($page > 2))
 <h4>
     General Settings
     <a class="explain" data-toggle="popover" data-placement="top" data-trigger="hover" data-content="Use the following group of options to edit the general features for your application, like the time when your application starts and ends, the background image etc." data-original-title="General Settings">?</a>
 </h4>
 <ul>
-    @if($page == 3)
-    <li class="glyphicons check">
-        <a href="{{ URL::to_route('app_edit_settings',array ($instance->instance, $page, 'frequency', $target_id)) }}"><i></i><span>Set No. of votes per user</span></a>
-        <a class="explain" data-content="Use this feature to determinate the exact number of votes per user." data-original-title="Set No. of votes per user">?</a>
-    </li>
-    <li class="glyphicons stopwatch">
-        <a href="{{ URL::to_route('app_edit_settings',array ($instance->instance, $page, 'date', $target_id)) }}"><i></i><span>Define voting start and stop</span></a>
-        <a class="explain" data-content="Use this feature to define the date and time when a competition should start and when it ends. This feature allows you to automatically start and end your application, according to the defined time period." data-original-title="Define voting start and stop">?</a>
-    </li>
-    @endif
     <li class="glyphicons circle_plus">
         <a href="{{ URL::to_route('app_edit_settings', array ($instance->instance, $page, 'localization', $target_id)) }}"><i></i><span>Targeting</span></a>
         <a class="explain" data-content="Use this feature to make custom previews of your application for different users groups. You can target different groups by choosing the users age, country or language." data-original-title="Targeting">?</a>

@@ -13,15 +13,14 @@
     {{ HTML::style('css/farbtastic.css') }}
     {{ HTML::style('css/style.css') }}
     {{ HTML::style('css/glyphicons.css') }}
-    
+
     <!--[if !IE]><!-->
-        {{ HTML::style('css/bootstrap-responsive.css') }}
+    {{ HTML::style('css/bootstrap-responsive.css') }}
     <!--<![endif]-->
-    
     {{ HTML::script('js/modernizr.custom.28468.js') }}
     <!--[if lte IE 9]>
-        {{ HTML::style('css/ie.css') }}
-        <script src="//ie7-js.googlecode.com/svn/version/2.1(beta4)/IE9.js"></script>
+    {{ HTML::style('css/ie.css') }}
+    <script src="//ie7-js.googlecode.com/svn/version/2.1(beta4)/IE9.js"></script>
     <![endif]-->
     <style type="text/css">{{ $instance->setting->css }}</style>
     <script>
@@ -29,7 +28,6 @@
         var APP_ID = "{{ $instance->instance }}";
         var APP_PAGE = "{{ $page }}";
         var APP_LANG = "{{ $target_id }}";
-        var END_DATE = "{{ $end }}";
     </script>
 </head>
 
@@ -55,7 +53,7 @@
                         @foreach($fields as $field)
                         <li id="field_{{$field->id}}" class="glyphicons bin pencil">
                             <div class="{{ $field->type->type }}" id="field_{{ $field->id }}">
-                                {{ View::make('type.partials.'.$field->type->type)->with('field', $field)->with('disabled', array('disabled' => 'disabled'))->with('instance', $instance)->with('page', $page)->with('end', $end) }}
+                                {{ View::make('type.partials.'.$field->type->type)->with('field', $field)->with('disabled', array('disabled' => 'disabled'))->with('instance', $instance)->with('page', $page) }}
                             </div>
                             <a href="{{ URL::to_route('app_edit_field', array ($instance->instance, $page, $field->id, $target_id)) }}" class="edit-field"><i class="editItem"></i></a>
                             <a href="" class="delete-field"><i class="deleteItem"></i></a>
@@ -84,20 +82,11 @@
                             @endif
                         </li>
                         @endif
-                        @if (!empty($instance->setting->roles))
-                        <li>
-                            @if (filter_var($instance->setting->roles, FILTER_VALIDATE_URL))
-                            {{ HTML::link($instance->setting->roles, 'Rules', array ('class' => 'footerlink', 'target' => '_blank')) }}
-                            @else
-                            {{ HTML::link(URL::to_route('app_info', array($instance->instance, $page, 'roles')), 'Rules', array ('class' => 'various fancybox.ajax')) }}
-                            @endif
-                        </li>
-                        @endif
                     </ul>
                 </div>
             </div>
             <div class="span3">
-                <h5>Types</h5>
+                <h5>Drag and drop elements</h5>
                 <ul class="draggable">
                     @foreach ($types as $type)
                     <li id="type_{{$type->id}}" class="glyphicons app-{{$type->type}}"><a><i></i><span>{{ $type->name }}</span></a></li>
@@ -116,35 +105,17 @@
     </div>
 
 </div>
-
-
-{{ HTML::script('//'.Request::server('HTTP_HOST').'/js/jquery-1.8.2.min.js') }}
-{{ HTML::script('//'.Request::server('HTTP_HOST').'/js/jquery-ui.min.js') }}
+{{ HTML::script('js/jquery.js') }}
+{{ HTML::script('js/jquery-ui.min.js') }}
 {{ HTML::script('js/jquery.showLoading.js') }}
-<!--File upload files-->
 {{ HTML::script('js/jquery.knob.js') }}
 {{ HTML::script('js/jquery.ui.widget.js') }}
 {{ HTML::script('js/jquery.iframe-transport.js') }}
 {{ HTML::script('js/jquery.fileupload.js') }}
-
-{{ HTML::script('js/countdown.js') }}
-{{ HTML::script('js/counter.js') }}
-
 {{ HTML::script('js/dragdrop.js') }}
 {{ HTML::script('js/bootstrap.min.js') }}
 {{ HTML::script('js/jquery.fancybox.pack.js') }}
 {{ HTML::script('js/farbtastic.js') }}
-<script>
-    $(document).ready(function() {
-        $(".various").fancybox({
-            width		: '60%',
-            height		: '60%',
-            autoSize	: false,
-            closeClick	: false,
-            openEffect	: 'none',
-            closeEffect	: 'none'
-        });
-    });
-</script>
+{{ HTML::script('js/custom.js') }}
 </body>
 </html>

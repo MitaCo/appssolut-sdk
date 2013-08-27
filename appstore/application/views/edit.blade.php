@@ -27,30 +27,12 @@
 
     <!--button view on end-->
 
+    
     <div class="row-fluid store-border">
         <div class="span12 ">
-            <div class="span12 row-fluid banner_upgrade">
-                <span class="span9 ">Edit Your application by clicking on each tab (
-                    <?php
-                    $pages_list = array();
-                    foreach ($app_pages as $det) {
-                        $pages_list[] = $det->page_label;
-                    }
-                    echo implode(', ', $pages_list);
-                    ?>
-                    ) presented below. <br />Active tab is colored green. Once You are done with editing one tab, just click on next available.
-                </span>
-                <span class="span3 arrow_down"></span>
-            </div>
-
-        </div>
-    </div>
-    <div class="row-fluid store-border">
-        <div class="span12 ">
-            <ul class="nav nav-tabs store" id="myTabed">
-                @foreach($app_pages as $det)                
-                <li class="{{ ($app_page == $det->page_num ? 'active': '') }}" >{{ HTML::link_to_route('edit_manager', $det->page_label, array($app_istance , $det->page_num, $app_lang)) }}</li>
-                @endforeach
+            <ul class="nav nav-tabs store" id="myTabed"> 
+                <li class="" >{{ HTML::link_to_route('edit_manager', 'Fan Gate', array($app_istance , 1, $app_lang)) }}</li>
+                
             </ul>
         </div>
     </div>

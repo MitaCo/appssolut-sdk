@@ -17,7 +17,29 @@ $(document).ready(function() {
    if (typeof APP_ID != "undefined") {
         
         if ($('#app_preview').length) {
-            $('#app_preview').html('<iframe id="appframepreview" width="821" height="800" src="/apps/' + APP_URL + '/admin/' + APP_ID + '/' + APP_PAGE + '/preview/' + TEMPLATE + '/' + APP_LANG + '">');
+            $.ajax({
+                    url: '/apps/' + APP_URL + '/admin/pages',
+                    type: 'GET',
+                    success: function(data) {
+                    menulist = $('#myTabed');
+                    menulist.empty();
+                    $.each (data.pages, function(id, page) {
+                        activeclass = '';
+                        if (id == APP_PAGE) {
+                            activeclass = 'active';
+                        }
+                        menulist.append('<li class="'+ activeclass + '"><a href="'+'/appstore/manager/' + APP_ID + '/edit/' + id + '/' + APP_LANG+'">'+ page +'</a></li>');
+                        
+                    }) 
+                                            
+                    },
+                    error: function(data){
+                        console.log(data);
+                        if ($.parseJSON(data.responseText).message)
+                            alert($.parseJSON(data.responseText).message)
+                    }
+                });
+            $('#app_preview').html('<iframe id="appframepreview" width="710" height="800" src="/apps/' + APP_URL + '/admin/' + APP_ID + '/' + APP_PAGE + '/preview/' + TEMPLATE + '/' + APP_LANG + '">');
             $('#appframepreview').load(function(){
                 $('#app_commands').load('/apps/' + APP_URL + '/admin/' + APP_ID + '/' + APP_PAGE + '/fields/' + APP_LANG , function() {
                     $('#app_commands ul').addClass("nav");

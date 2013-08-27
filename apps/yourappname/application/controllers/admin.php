@@ -55,78 +55,6 @@ class Admin_Controller extends Base_Controller {
         return View::make('admin.preview', $this->data);
     }
 
-    // Drag and drop fields
-    public function get_drag_drop($hash = null, $page = 1, $template_id = 1, $target_id = 1) {
-        // Verify application instance
-        if (empty($hash)) {
-            return Response::json(array('message' => 'Instance not found.'), 400);
-        }
-        $instance = Instance::with('setting')->where_instance($hash)->first();
-        if (empty($instance)) {
-            return Response::json(array('message' => 'Instance not found.'), 400);
-        }
-
-        // Show message if fangate and/or entry form is disabled
-        if ($page == 1 and !$instance->setting->fangate) {
-            $this->data['msg'] = 'Fan gate page is disabled in settings';
-            return View::make('admin.disabled', $this->data);
-        }
-        if ($page == 2 and !$instance->setting->entry_form) {
-            $this->data['msg'] = 'Entry form is disabled in settings';
-            return View::make('admin.disabled', $this->data);
-        }
-
-        $target = $this->get_target($instance->id, $target_id);
-
-        $fields = Field::with('type')
-            ->where_instance_id($instance->id)
-            ->where_target_id($target->id)
-            ->where_page_id($page)
-            ->order_by('position', 'asc')
-            ->get();
-
-        $this->data['instance'] = $instance;
-        $this->data['page'] = $page;
-        $this->data['template_id'] = $template_id;
-        $this->data['target_id'] = $target->id;
-        $this->data['fields'] = $fields;
-
-        return View::make('admin.fields.manage', $this->data);
-    }
-
-    public function get_info($hash, $page, $setting_type) {
-        // Verify application instance
-        $instance = Instance::with('setting')->where_instance($hash)->first();
-        if (empty($instance)) {
-            return Response::json(array('message' => 'Instance not found.'), 400);
-        }
-
-        // Get content for type of info
-        switch ($setting_type) {
-
-            case 'privacy':
-                $this->data['title'] = 'Privacy';
-                $this->data['text'] = $instance->setting->privacy;
-                break;
-
-            case 'terms':
-                $this->data['title'] = 'Terms';
-                $this->data['text'] = $instance->setting->terms;
-                break;
-
-            case 'roles':
-                $this->data['title'] = 'Rules';
-                $this->data['text'] = $instance->setting->roles;
-                break;
-
-            default:
-                return Response::error(404);
-                break;
-        }
-
-        return View::make('showinfo', $this->data);
-    }
-
     // Export button
     public function get_export($hash = null, $page = 1) {
         // Verify application instance
@@ -190,6 +118,19 @@ class Admin_Controller extends Base_Controller {
         return Response::json(array('message' => 'Application restored.'), 200);
     }
 
+    // Get application pages for appstore
+    public function get_pages() {
+        $pages = Page::order_by('id')->lists('name', 'id');
+
+        return Response::json(array('pages' => $pages), 200);
+    }
+
+
+
+    /*******************************************************************************************************************
+     * APPLICATION FIELDS
+     ******************************************************************************************************************/
+
     // Application field list in manager right sidebar
     public function get_fields($hash, $page, $target_id = 1) {
         // Verify application instance
@@ -231,6 +172,10 @@ class Admin_Controller extends Base_Controller {
             return Response::json(array('message' => 'Field not found.'), 400);
         }
 
+        $this->data['instance'] = $instance;
+        $this->data['page'] = $page;
+        $this->data['target_id'] = $target->id;
+        $this->data['field'] = $field;
         // Enable editing options based on field type
         $this->data['terms_msg'] = false;
         $this->data['label'] = false;
@@ -278,22 +223,16 @@ class Admin_Controller extends Base_Controller {
                 break;
         }
 
-        $this->data['instance'] = $instance;
-        $this->data['page'] = $page;
-        $this->data['target_id'] = $target->id;
-        $this->data['field'] = $field;
-
         return View::make('admin.fields.edit', $this->data);
     }
 
+    // Update field
     public function put_update_field($hash, $page, $field_id, $target_id = 1) {
         // Verify application instance
         $instance = Instance::with('setting')->where_instance($hash)->first();
         if (empty($instance)) {
             return Response::json(array('message' => 'Instance not found.'), 400);
         }
-
-        $target = $this->get_target($instance->id, $target_id);
 
         $field = Field::where_instance_id($instance->id)->find($field_id);
         if (empty($field)) {
@@ -333,22 +272,84 @@ class Admin_Controller extends Base_Controller {
         }
     }
 
-    // Drag and drop - switch position of 2 fields
-    public function put_reorder_fields($hash, $page) {
+    // Delete field
+    public function delete_destroy_field($hash, $page, $target_id = 1) {
+        // Verify application instance
+        $instance = Instance::with('setting')->where_instance($hash)->first();
+        if (empty($instance)) {
+            return Response::json(array('message' => 'Instance not found.'), 400);
+        }
+
+        $target = $this->get_target($instance->id, $target_id);
+
         $postdata = Input::all();
 
-        $field_1 = Field::find($postdata['id_1']);
-        $field_2 = Field::find($postdata['id_2']);
+        // Make sure the field belongs to this application
+        $field = Field::where_instance_id($instance->id)->find($postdata['field_id']);
+        if (empty($field)) {
+            return Response::json(array('message' => 'Field not found'), 400);
+        }
 
-        $temp_position = $field_1->position;
-        $field_1->position = $field_2->position;
-        $field_2->position = $temp_position;
+        // Delete field
+        if ($field->delete()) {
+            Session::flash('message', $field->label.' deleted.');
 
-        $field_1->save();
-        $field_2->save();
+            // Update positions of the remaining fields
+            $fields = Field::where_instance_id($instance->id)->where_page_id($page)->where_target_id($target->id)->order_by('position', 'asc')->get();
+            $i = 1;
+            foreach ($fields as $field) {
+                $field->position = $i++;
+                $field->save();
+            }
+
+            return Response::json(array('message' => $field->label.' deleted.'), 200);
+        }
+        else {
+            return Response::json(array('message' => $field->label.' not deleted.'), 400);
+        }
     }
 
-    // Drag and drop - Create new field
+    // Drag and drop fields
+    public function get_drag_drop($hash = null, $page = 1, $template_id = 1, $target_id = 1) {
+        // Verify application instance
+        if (empty($hash)) {
+            return Response::json(array('message' => 'Instance not found.'), 400);
+        }
+        $instance = Instance::with('setting')->where_instance($hash)->first();
+        if (empty($instance)) {
+            return Response::json(array('message' => 'Instance not found.'), 400);
+        }
+
+        // Show message if fangate and/or entry form is disabled
+        if ($page == 1 and !$instance->setting->fangate) {
+            $this->data['msg'] = 'Fan gate page is disabled in settings';
+            return View::make('admin.disabled', $this->data);
+        }
+        if ($page == 2 and !$instance->setting->entry_form) {
+            $this->data['msg'] = 'Entry form is disabled in settings';
+            return View::make('admin.disabled', $this->data);
+        }
+
+        $target = $this->get_target($instance->id, $target_id);
+
+        $fields = Field::with('type')
+            ->where_instance_id($instance->id)
+            ->where_target_id($target->id)
+            ->where_page_id($page)
+            ->order_by('position', 'asc')
+            ->get();
+
+        $this->data['instance'] = $instance;
+        $this->data['page'] = $page;
+        $this->data['template_id'] = $template_id;
+        $this->data['target_id'] = $target->id;
+        $this->data['fields'] = $fields;
+        $this->data['types'] = Type::all(); // No countdown timer and accept rules
+
+        return View::make('admin.fields.manage', $this->data);
+    }
+
+    // Create new field
     public function post_create_draggable_field($hash, $page, $target_id = 1) {
         // Verify application instance
         $instance = Instance::with('setting')->where_instance($hash)->first();
@@ -412,37 +413,42 @@ class Admin_Controller extends Base_Controller {
         $field = new Field();
         $field->instance_id = $instance->id;
         $field->type_id = $type->id;
-        $field->template_id = $instance->template_id;
+        $field->template_id = $instance->setting->template_id;
         $field->page_id = $page;
         $field->target_id = $target->id;
         $field->label = $label;
         $field->value = $value;
         $field->position = $postdata['position'];
         $field->property = $property;
-        $field->visible = 1;
+        $field->fangate = 0;
         $field->visible = 1;
         $field->editable = 1;
         $field->required = 1;
 
         if ($field->save()) {
-            return Response::json(array('message' => 'Field created', 'field_id' => $field->id), 200);
+            return Response::json(array('message' => $type->name.' created.', 'field_id' => $field->id), 200);
         }
         else {
-            return Response::json(array('message' => 'Field not created'), 400);
+            return Response::json(array('message' => $type->name.' not created.'), 400);
         }
     }
 
-    // ****************************** DRAG AND DROP UPDATE POSITION ****************************** \\
-    public function put_update_field_position($hash, $page, $target = 1) {
-        $instance = Instance::where_instance($hash)->first();
-        $target = Target::where_instance_id($instance->id)->where_id($target)->first();
-        if (empty($target)) {
-            $target = Target::where_instance_id($instance->id)->order_by('id')->first();
+    // Move field
+    public function put_update_field_position($hash, $page, $target_id = 1) {
+        // Verify application instance
+        $instance = Instance::with('setting')->where_instance($hash)->first();
+        if (empty($instance)) {
+            return Response::json(array('message' => 'Instance not found.'), 400);
         }
+
+        $target = $this->get_target($instance->id, $target_id);
+
+        // Get old and new position of the field
         $postdata = Input::all();
         $old_pos = $postdata['old_position'];
         $new_pos = $postdata['new_position'];
 
+        // Update positions of other fields
         if ($old_pos > $new_pos) {
             $fields = Field::where_instance_id($instance->id)
                 ->where_target_id($target->id)
@@ -469,83 +475,87 @@ class Admin_Controller extends Base_Controller {
             }
         }
 
+        // Update position of seleted field
         $field = Field::find($postdata['field_id']);
         $field->position = $new_pos;
 
         if ($field->save()) {
-            return Response::json(array('message' => 'Position updated'), 200);
+            return Response::json(array('message' => 'Field position updated.'), 200);
         }
         else {
-            return Response::json(array('message' => 'Position updated'), 400);
+            return Response::json(array('message' => 'Field position updated.'), 400);
         }
     }
-
-    public function delete_destroy_field($hash, $page, $target = 1) {
-        $instance = Instance::where_instance($hash)->first();
-        if (empty($instance)) {
-            return Response::json(array('message' => 'Instance not found'), 400);
-        }
-        $target = Target::where_instance_id($instance->id)->where_id($target)->first();
-        if (empty($target)) {
-            $target = Target::where_instance_id($instance->id)->order_by('id')->first();
-        }
-        $postdata = Input::all();
-        $field = Field::where_instance_id($instance->id)->find($postdata['field_id']);
-
-        if (empty($field)) {
-            return Response::json(array('message' => 'Field not found'), 400);
-        }
-
-        if ($field->delete()) {
-            Session::flash('message', 'Field deleted. ');
-
-            $fields = Field::where_instance_id($instance->id)->where_page_id($page)->where_target_id($target->id)->order_by('position', 'asc')->get();
-            $i = 1;
-            foreach ($fields as $field) {
-                $field->position = $i++;
-                $field->save();
-            }
-
-            return Response::json(array('message' => 'Field deleted'), 200);
-        }
-        else {
-            return Response::json(array('message' => 'Field not deleted'), 400);
-        }
-    }
-    /******************************************************** END FIELDS ****************************************************/
+    /*******************************************************************************************************************
+     * APPLICATION FIELDS END
+     ******************************************************************************************************************/
 
 
-    /******************************************************** SETTINGS ******************************************************/
-    public function get_edit_setting($hash, $page, $type, $target) {
+
+    /*******************************************************************************************************************
+     * SETTINGS
+     ******************************************************************************************************************/
+
+    // Get privacy, terms, or rules
+    public function get_info($hash, $page, $setting_type) {
+        // Verify application instance
         $instance = Instance::with('setting')->where_instance($hash)->first();
         if (empty($instance)) {
-            return Response::json(array('message' => 'Instance not found'), 400);
+            return Response::json(array('message' => 'Instance not found.'), 400);
         }
 
-        switch($type) {
+        // Get content for type of info
+        switch ($setting_type) {
 
+            case 'privacy':
+                $this->data['title'] = 'Privacy';
+                $this->data['text'] = $instance->setting->privacy;
+                break;
+
+            case 'terms':
+                $this->data['title'] = 'Terms';
+                $this->data['text'] = $instance->setting->terms;
+                break;
+
+            case 'roles':
+                $this->data['title'] = 'Rules';
+                $this->data['text'] = $instance->setting->roles;
+                break;
+
+            default:
+                return Response::error(404);
+                break;
+        }
+
+        return View::make('showinfo', $this->data);
+    }
+
+    // Edit settings
+    public function get_edit_setting($hash, $page, $type, $target_id) {
+        // Verify application instance
+        $instance = Instance::with('setting')->where_instance($hash)->first();
+        if (empty($instance)) {
+            return Response::json(array('message' => 'Instance not found.'), 400);
+        }
+
+        $target = $this->get_target($instance->id, $target_id);
+
+        // Load additional data for some settings
+        switch($type) {
+            // Targeting
             case 'localization':
                 $this->data['ages'] = Age::order_by('value')->lists('name', 'id');
                 $this->data['countries'] = Country::order_by('id')->lists('name', 'id');
                 $this->data['languages'] = Language::order_by('id')->lists('name', 'id');
                 $this->data['targets'] = Target::where_instance_id($instance->id)->order_by('id')->get();
-                $this->data['current_target_id'] = $target;
+                $this->data['current_target_id'] = $target->id;
                 break;
-
+            // Campaign eligibility
             case 'eligibility':
                 $this->data['ages'] = Age::order_by('value')->lists('name', 'id');
                 $this->data['countries'] = Country::order_by('id')->lists('name', 'id');
                 $this->data['allowedcountries'] = Allowedcountry::where_instance_id($instance->id)->order_by('country_id')->lists('country_id', 'country_id');
                 break;
-
-            case 'date':
-                $tzlist = DateTimeZone::listIdentifiers(DateTimeZone::ALL);
-                foreach ($tzlist as $tz) {
-                    $timezones[$tz] = $tz;
-                }
-                $this->data['timezones'] = $timezones;
-                break;
-
             default:
                 break;
         }
@@ -557,63 +567,71 @@ class Admin_Controller extends Base_Controller {
         return View::make('admin.settings.'.$type, $this->data);
     }
 
+    // Update settings
     public function put_update_setting($hash, $page) {
-        $instance = Instance::where_instance($hash)->first();
+        // Verify application instance
+        $instance = Instance::with('setting')->where_instance($hash)->first();
         if (empty($instance)) {
-            return Response::json(array('message' => 'Instance not found'), 400);
+            return Response::json(array('message' => 'Instance not found.'), 400);
         }
 
         $postdata = Input::all();
-        if (empty($postdata)) return;
+        if (empty($postdata)) {
+            return;
+        }
         $success = false;
-        $message = 'An error occurred, please try again. ';
+        $message = 'An error occurred, please try again.';
         $returnval = null;
         foreach ($postdata as $key => $input) {
 
             switch($key) {
-
+                // Enable/disable fan gate
                 case 'fangate':
                     $setting = Setting::where_instance_id($instance->id)->first();
                     $setting->$key = $input;
+
                     if ($setting->save()) {
                         $success = true;
-                        $message = 'Fangate settings updated. ';
+                        $message = 'Fangate settings updated.';
                     } else {
                         $success = false;
-                        $message = 'Fangate settings not updated. ';
+                        $message = 'Fangate settings not updated.';
                     }
                     break;
-
+                // Enable/disable entry form
                 case 'entry_form':
                     $setting = Setting::where_instance_id($instance->id)->first();
                     $setting->$key = $input;
+
                     if ($setting->save()) {
                         $success = true;
-                        $message = 'Entry form settings updated. ';
+                        $message = 'Entry form settings updated.';
                     } else {
                         $success = false;
-                        $message = 'Entry form settings not updated. ';
+                        $message = 'Entry form settings not updated.';
                     }
                     break;
-
+                // Edit custom CSS
                 case 'css':
                     $setting = Setting::where_instance_id($instance->id)->first();
                     $setting->$key = nl2br($input);
+
                     if ($setting->save()) {
                         $success = true;
-                        $message = 'CSS updated. ';
+                        $message = 'CSS updated.';
                     } else {
                         $success = false;
-                        $message = 'CSS not updated. ';
+                        $message = 'CSS not updated.';
                     }
                     break;
-                case 'value': // Background image
+                // Background image
+                case 'value':
                     if (!empty($input['name'])) {
                         $setting = Setting::where_instance_id($instance->id)->first();
                         $url = Helper::upload('value', $input, 'IMAGE');
                         if (empty($url)) {
                             $success = false;
-                            $message = 'Upload failed. Try another format. ';
+                            $message = 'Upload failed. Try another format.';
                             break;
                         }
                         $setting->background = $url;
@@ -622,29 +640,29 @@ class Admin_Controller extends Base_Controller {
                         if ($setting->save()) {
                             unset($postdata['value']);
                             $success = true;
-                            $message = 'Background image saved. ';
+                            $message = 'Background image saved.';
                         } else {
                             $success = false;
-                            $message = 'Background image not saved. ';
+                            $message = 'Background image not saved.';
                         }
                     }
                     break;
+                // Background color
                 case 'property':
                         $setting = Setting::where_instance_id($instance->id)->first();
                         $setting->background = $postdata['colorpicker'];
-                        //unset($postdata['value']);
 
                         if ($setting->save()) {
                             unset($input);
                             $success = true;
-                            $message = 'Background color saved. ';
+                            $message = 'Background color saved.';
                         } else {
                             $success = false;
-                            $message = 'Background color not saved. ';
+                            $message = 'Background color not saved.';
                         }
                     break;
-
-                case 'age': // Advanced targeting
+                // Create new target
+                case 'age': // Includes country and language
                     // Check if target combination exists
                     $active_targets = Target::where_instance_id($instance->id)->get();
                     $target_exists = FALSE;
@@ -657,20 +675,21 @@ class Admin_Controller extends Base_Controller {
                             break;
                         }
                     }
-
                     if ($target_exists) {
                         $success = false;
-                        $message = 'This targeting combination already exists. ';
+                        $message = 'This targeting combination already exists.';
                         break;
                     }
 
+                    // Get fields from default target
                     $default_target = Target::where_instance_id($instance->id)
                         ->where_language_id(1)
                         ->where_country_id(1)
                         ->where_age_id(1)
                         ->first();
-
                     $original_fields = Field::where_instance_id($instance->id)->where_target_id($default_target->id)->get();
+
+                    // Create fields for new target
                     $new_target = $this->create_instance_localization($original_fields, $instance->id, $postdata);
 
                     unset($postdata['language']);
@@ -680,23 +699,24 @@ class Admin_Controller extends Base_Controller {
                     unset($postdata['active']);
 
                     $returnval = $new_target->id;
-                    $success = true; // assuming
+                    $success = true;
                     $message = 'Target created. Showing target group: '.$new_target->title;
                     break;
-
-                case 'min_age': // Campaign eligibility minimum age
+                // Campaign eligibility
+                case 'min_age': // Includes country
                     $success = true;
-                    $message = 'Campaign eligibility updated. ';
+                    $message = 'Campaign eligibility updated.';
 
+                    // Minimum age
                     $setting = Setting::where_instance_id($instance->id)->first();
                     $setting->age_id = $postdata['min_age'];
 
                     if (!$setting->save()) {
                         $success = false;
-                        $message = 'Campaign eligibility not updated. ';
+                        $message = 'Campaign eligibility not updated.';
                     }
 
-                    // Campaign eligibility allowed countries
+                    // Allowed countries
                     Allowedcountry::where_instance_id($instance->id)->delete();
                     if (!isset($postdata['allowedcountries'])) {
                         $postdata['allowedcountries'][0] = 1;
@@ -707,49 +727,50 @@ class Admin_Controller extends Base_Controller {
                         $allowedcountry->country_id = $country_id;
                         if (!$allowedcountry->save()) {
                             $success = false;
-                            $message = 'Campaign eligibility not updated. ';
+                            $message = 'Campaign eligibility not updated.';
                         }
                     }
 
                     unset($postdata['min_age']);
                     unset($postdata['allowedcountries']);
-
                     break;
-
+                // Edit privacy
                 case 'privacy':
                     $setting = Setting::where_instance_id($instance->id)->first();
                     $setting->$key = nl2br($input);
+
                     if ($setting->save()) {
                         $success = true;
-                        $message = 'Privacy updated. ';
+                        $message = 'Privacy updated.';
                     } else {
                         $success = false;
-                        $message = 'Privacy not updated. ';
+                        $message = 'Privacy not updated.';
                     }
                     break;
+                // Edit terms
                 case 'terms':
                     $setting = Setting::where_instance_id($instance->id)->first();
                     $setting->$key = nl2br($input);
                     if ($setting->save()) {
                         $success = true;
-                        $message = 'Terms updated. ';
+                        $message = 'Terms updated.';
                     } else {
                         $success = false;
-                        $message = 'Terms not updated. ';
+                        $message = 'Terms not updated.';
                     }
                     break;
+                // Edit rules
                 case 'roles':
                     $setting = Setting::where_instance_id($instance->id)->first();
                     $setting->$key = nl2br($input);
                     if ($setting->save()) {
                         $success = true;
-                        $message = 'Rules updated. ';
+                        $message = 'Rules updated.';
                     } else {
                         $success = false;
-                        $message = 'Rules not updated. ';
+                        $message = 'Rules not updated.';
                     }
                     break;
-
                 default:
                     break;
             }
@@ -765,17 +786,20 @@ class Admin_Controller extends Base_Controller {
         }
     }
 
+    // Update existing target
     public function put_update_target($hash, $target_id) {
-        $instance = Instance::where_instance($hash)->first();
+        // Verify application instance
+        $instance = Instance::with('setting')->where_instance($hash)->first();
         if (empty($instance)) {
-            return Response::json(array('message' => 'Instance not found'), 400);
+            return Response::json(array('message' => 'Instance not found.'), 400);
         }
 
         $postdata = Input::all();
 
+        // Verify target exists and that it is not the default target (can not be edited)
         $target = Target::where_instance_id($instance->id)->where_id($target_id)->first();
         if (empty($target)) {
-            $message = 'Target group not found. ';
+            $message = 'Target group not found.';
             $returnval = null;
             Session::flash('message', $message);
             return Response::json(array('message' => $message, 'val' => $returnval), 400);
@@ -786,19 +810,21 @@ class Admin_Controller extends Base_Controller {
             return Response::json(array('message' => $message, 'val' => $returnval), 200);
         }
 
+        // Make sure the new combination does not already exist
         $active_targets = Target::where_instance_id($instance->id)->where_not_in('id', array($target->id))->get();
         foreach ($active_targets as $active_target) {
             if ($active_target->language_id == $postdata['language']
                 && $active_target->country_id == $postdata['country']
                 && $active_target->age_id == $postdata['age']) {
 
-                $message = 'This targeting combination already exists. Try a different combination. ';
+                $message = 'This targeting combination already exists. Try a different combination.';
                 $returnval = null;
                 Session::flash('message', $message);
                 return Response::json(array('message' => $message, 'val' => $returnval), 400);
             }
         }
 
+        // Update target
         $target->language_id = $postdata['language'];
         $target->country_id = $postdata['country'];
         $target->age_id = $postdata['age'];
@@ -818,12 +844,13 @@ class Admin_Controller extends Base_Controller {
             return Response::json(array('message' => $message, 'val' => $returnval), 400);
         }
     }
-    /******************************************************** END SETTINGS **************************************************/
+    /*******************************************************************************************************************
+     * SETTINGS END
+     ******************************************************************************************************************/
 
 
 
     private function initialize_instance($hash, $template_id) {
-
         // Create instance
         $instance = new Instance();
         $instance->instance = $hash;
@@ -871,29 +898,29 @@ class Admin_Controller extends Base_Controller {
             $field = new Field();
             $field->instance_id = $instance_id;
             $field->type_id = $fake->type_id;
-            $field->fangate = 0;
+            $field->template_id = $fake->template_id;
+            $field->page_id = $fake->page_id;
+            $field->target_id = $target_id;
             $field->label = $fake->label;
-            $field->button = $fake->button;
             if ($i == 1 and !empty($page->image)) {
                 $field->value = URL::to('templates/'.$template_id.'/'.$page->image);
             } else {
                 $field->value = $fake->value;
             }
-
+            $field->info = $fake->info;
             $field->position = $i++;
+            $field->button = $fake->button;
+            $field->property = $fake->property;
+            $field->fangate = 0;
             $field->visible = 1;
             $field->editable = 1;
             $field->required = 1;
-            $field->page_id = $fake->page_id;
-            $field->property = $fake->property;
-            $field->template_id = $fake->template_id;
-            $field->target_id = $target_id;
-            $field->info = $fake->info;
             $field->save();
         }
     }
 
     private function create_instance_localization($original_fields, $instance_id, $postdata) {
+        // Create new target
         $target = new Target();
         $target->instance_id = $instance_id;
         $target->language_id = $postdata['language'];
@@ -904,6 +931,7 @@ class Admin_Controller extends Base_Controller {
         $target->default = 0;
         $target->save();
 
+        // Duplicate original fields and add new target id
         foreach ($original_fields as $original_field) {
             $field = new Field();
             $field->instance_id = $original_field->instance_id;

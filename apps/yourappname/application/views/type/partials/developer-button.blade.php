@@ -1,1 +1,0 @@
-{{ Form::button($field->value, !empty($disabled)? array('class' => 'item-disabled', 'style' => 'background:'.(!empty($field->property) ? $field->property : '#88b05f')) : array('style' => 'background:'.(!empty($field->property) ? $field->property : '#88b05f'))) }}

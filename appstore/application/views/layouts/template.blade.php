@@ -93,8 +93,8 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
 
-    {{ HTML::script('js/wysihtml5-0.3.0.js') }}
     {{ HTML::script('js/jquery.js') }}
+    {{ HTML::script('js/wysihtml5-0.3.0.js') }}
     {{ HTML::script('js/jquery-ui.min.js') }}
     {{ HTML::script('js/jquery-ui-timepicker-addon.js') }}
    

@@ -46,7 +46,7 @@
             <!-- APPLICATION -->
             <div class="row-fluid application">
                 <?php $back = str_contains(@$instance->setting->background, '#') ? (!empty($instance->setting->background) ? $instance->setting->background : '#FFFFFF') : "url(".URL::to(@$instance->setting->background).")"; ?>
-                <div class="voting_app span12" {{ (($page == 1) or ($page == 4)) ? '' : 'style="background:'.$back.'"' }}>
+                <div class="voting_app span12" {{ ($page == 1) ? '' : 'style="background:'.$back.'"' }}>
 
                 <!-- FIELDS -->
                 @foreach($fields as $field)
@@ -92,10 +92,10 @@
     </div>
 </div>
 </div>
-
 {{ HTML::script('js/jquery.js') }}
 {{ HTML::script('js/jquery-ui.min.js') }}
 {{ HTML::script('js/bootstrap.min.js') }}
+{{ HTML::script('js/jquery.fancybox.pack.js') }}
 {{ HTML::script('js/custom.js') }}
 </body>
 </html>
