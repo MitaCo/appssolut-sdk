@@ -101,7 +101,7 @@ class Sdk_Controller extends Base_Controller {
             // Session::flush();
             Session::put('hashid', $hash);
             Session::put('return_url', URL::base().'/'.$hash);
-            Session::put('fbuid', 0);
+            Session::put('fbuid', 123456456);
             Session::put('fbpage', '');
             Session::put('locale', 'en_US');
             Session::put('country', 'us');
@@ -112,6 +112,76 @@ class Sdk_Controller extends Base_Controller {
         } 
         Session::flush();
         return;
+    }
+
+    // Find most suitable target based on users input
+    public function find_target_for($instance, $fbuser) {
+        // Get database id's for fbuser age, country, and language
+        // dd($fbuser);
+        $fbuser_age_id = Age::where_value($fbuser->getAge())->first()->id;
+        $fbuser_country_id = Country::where_code(strtoupper($fbuser->getCountry()))->first()->id;
+        $fbuser_language_id = Language::where_langcode($fbuser->getlocale())->first()->id;
+
+        // Get all targets based on the user's age
+        $targets = Target::where_instance_id($instance->id)->where('age_id', '<=', $fbuser_age_id)->where_active(1)->order_by('age_id', 'desc')->get();
+        // Get targets based on country
+        $country_targets = array ();
+        $all_countries_targets = array ();
+        foreach ($targets as $target) {
+            if ($fbuser_country_id == $target->country_id) {
+                // Keep targets that match the user's country
+                $country_targets[] = $target;
+            } else if ($target->country_id == 1) {
+                // Keep targets that allow any country
+                $all_countries_targets[] = $target;
+            }
+        }
+        if (!empty($country_targets)) {
+            $targets = $country_targets;
+        } else {
+            $targets = $all_countries_targets;
+        }
+        // Get targets based on language
+        $language_targets = array ();
+        $all_languages_targets = array ();
+        foreach ($targets as $target) {
+            if ($fbuser_language_id == $target->language_id) {
+                // Keep targets that match the user's language
+                $language_targets[] = $target;
+            } else if ($target->language_id == 1) {
+                // Keep targets that allow any language
+                $all_languages_targets[] = $target;
+            }
+        }
+        if (!empty($language_targets)) {
+            $targets = $language_targets;
+        } else {
+            $targets = $all_languages_targets;
+        }
+        // Final target
+        if (empty($targets)) {
+            $targets[] = Target::where_instance_id($instance->id)->where_age_id(1)->where_country_id(1)->where_language_id(1)->first();
+        }
+        return $targets[0];
+    }
+
+    public function is_eligible($instance, $fbuser) {
+        // Get database ID's for fbuser age and country
+        $fbuser_age_id = Age::where_value($fbuser->getAge())->first()->id;
+        $fbuser_country_id = Country::where_code(strtoupper($fbuser->getCountry()))->first()->id;
+
+        $min_age_id = $instance->setting->age_id;
+        if ($fbuser_age_id < $min_age_id) {
+            $age_value = Age::find($min_age_id)->value;
+            Session::flash('eligibility_message', 'You must have '.$age_value.'+ years to participate.');
+            return false;
+        }
+        $allowed_countries = Allowedcountry::where_instance_id($instance->id)->order_by('country_id')->lists('country_id', 'country_id');
+        if (isset($allowed_countries[1]) || isset($allowed_countries[$fbuser_country_id])) {
+            return true;
+        }
+        Session::flash('eligibility_message', 'You are not allowed to participate from this country.');
+        return false;
     }
 
 }

@@ -17,7 +17,9 @@
 
 Autoloader::map(array(
     // 'Base_Controller' => path('bundle').'myapp/controllers/base.php',
-    'URIhelper' => path('app').'libraries/URIhelper.php'
+    'Sdk_Controller' => path('app').'controllers/sdk.php',
+    'URIhelper' => path('app').'libraries/URIhelper.php',
+    'Fbdata_Controller' => path('app').'controllers/fbdata.php',
 ));
 
 /*

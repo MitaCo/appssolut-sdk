@@ -50,7 +50,7 @@
                 <!-- FIELDS -->
                 @foreach($fields as $field)
                 <div class="{{ $field->type->type }}" id="field_{{ $field->id }}">
-                    {{ View::make('type.partials.'.$field->type->type)->with('field', $field)->with('disabled', $disabled)->with('instance', $instance)->with('page', $page) }}
+                    {{ View::make('type.partials.'.$field->type->type)->with('field', $field)->with('instance', $instance)->with('page', $page) }}
                 </div>
                 @endforeach
 

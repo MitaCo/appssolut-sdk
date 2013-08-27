@@ -29,7 +29,7 @@ return array(
             'password' => 'postgres',
             'charset'  => 'utf8',
             'prefix'   => '',
-            'schema'   => 'public',
+            'schema'   => 'yourappname',
         ),
     ),
 );

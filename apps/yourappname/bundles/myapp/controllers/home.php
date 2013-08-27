@@ -16,9 +16,12 @@ class Myapp_Home_Controller extends Sdk_Controller {
 
         // Get current facebook user
         $fbuser = new Fbdata_Controller;
+        // return $this->find_target_for($instance, $fbuser);
+        $target = $this->find_target_for($instance, $fbuser);
+        // dd($target);
 
         if (empty($uid)) {
-            return $fbuser->makelogin();
+            // return $fbuser->makelogin();
         }
         $fields = Field::with('type')
             ->where_instance_id($instance->id)
@@ -37,7 +40,7 @@ class Myapp_Home_Controller extends Sdk_Controller {
         $this->data['invitelink'] = $fbuser->getInviteLink('Invite your Friends!');
 
         return View::make('home.index', $this->data);
-    }
-    
+        
+    }    
 
 }
