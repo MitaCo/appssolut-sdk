@@ -38,6 +38,10 @@ class Admin_Controller extends Base_Controller {
         // Get target(ing)
         $target = $this->get_target($instance->id, $target_id);
 
+        if ($page > 2) {
+            return Myapp_Admin_Controller::get_preview($instance, $page, $template_id, $target->id);
+        }
+
         // Get application fields
         $fields = Field::with('type')
             ->where_instance_id($instance->id)
@@ -141,12 +145,16 @@ class Admin_Controller extends Base_Controller {
 
         $target = $this->get_target($instance->id, $target_id);
 
-        $fields = Field::with('type')
-            ->where_instance_id($instance->id)
-            ->where_page_id($page)
-            ->where_target_id($target->id)
-            ->order_by('position', 'asc')
-            ->get();
+        if ($page > 2) {
+            $fields = Myapp_Admin_Controller::get_fields($instance, $page, $target->id);
+        } else {
+            $fields = Field::with('type')
+                ->where_instance_id($instance->id)
+                ->where_page_id($page)
+                ->where_target_id($target->id)
+                ->order_by('position', 'asc')
+                ->get();
+        }
 
         $this->data['instance'] = $instance;
         $this->data['page'] = $page;
