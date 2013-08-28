@@ -29,12 +29,6 @@
     <div id="inner-wrap" class="inner-right">
         <div class="container row-fluid">
 
-            <!-- NOTIFICATION MESSAGE -->
-            @if(!empty($message))
-            <div class="innerLR"><div class="alert alert-info"><button type="button" class="close" data-dismiss="alert">×</button>{{ $message }}</div></div>
-            <div class="separator"></div>
-            @endif
-
             <!-- APPLICATION -->
             <div class="row-fluid application">
                 <?php $back = str_contains(@$instance->setting->background, '#') ? (!empty($instance->setting->background) ? $instance->setting->background : '#FFFFFF') : "url(".URL::to(@$instance->setting->background).")"; ?>
@@ -43,7 +37,7 @@
                 <!-- FIELDS -->
                 @foreach($fields as $field)
                 <div class="{{ $field->type->type }}" id="field_{{ $field->id }}">
-                    {{ View::make('myapp::type.partials.'.$field->type->type)->with('field', $field)->with('disabled', array('disabled' => 'disabled'))->with('instance', $instance)->with('page', $page) }}
+                    {{ View::make('myapp::type.partials.'.$field->type->type)->with('field', $field)->with('instance', $instance)->with('page', $page) }}
                 </div>
                 @endforeach
 

@@ -14,13 +14,11 @@ class Myapp_Home_Controller extends Sdk_Controller {
             return View::make('notactive');
         }
 
-        // Get current facebook user
         $fbuser = new Fbdata_Controller;
-
         $target = $this->find_target_for($instance, $fbuser);
 
         if (empty($uid)) {
-            // return $fbuser->makelogin();
+            //return $fbuser->makelogin();
         }
 
         $fields = Field::with('type')
@@ -34,6 +32,6 @@ class Myapp_Home_Controller extends Sdk_Controller {
         $this->data['page'] = $page_id;
         $this->data['fields'] = $fields;
 
-        return View::make('home.index', $this->data);
+        return View::make('myapp::home.index', $this->data);
     }
 }
