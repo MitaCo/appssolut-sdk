@@ -25,7 +25,7 @@ class Insert_Data_To_Types {
         DB::query("insert into types (id, type, created_at, updated_at, name) values (20, 'input-accept-terms', '2013-06-10 12:00:00', '2013-06-10 12:00:00', 'Accept terms');");
         DB::query("insert into types (id, type, created_at, updated_at, name) values (21, 'input-accept-rules', '2013-06-10 12:00:00', '2013-06-10 12:00:00', 'Accept rules');");
 
-        DB::query("SELECT setval('types_id_seq', 20);");
+        DB::query("SELECT setval('types_id_seq', 21);");
     }
 
 	public function down()
