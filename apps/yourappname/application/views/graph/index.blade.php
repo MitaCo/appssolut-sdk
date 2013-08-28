@@ -2,7 +2,7 @@
 <table  class="table table-condensed cf give_table user_list">
     <thead class="cf">
     <tr>
-        <th  scope="col">Entry No. / {{ $key }}</th>
+        <th  scope="col">#</th>
         <th  scope="col">Date entered</th>
         @foreach($value['labels'] as $label)
         <th  scope="col">{{ $label }}</th>

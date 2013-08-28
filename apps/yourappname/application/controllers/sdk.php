@@ -101,7 +101,7 @@ class Sdk_Controller extends Base_Controller {
             // Session::flush();
             Session::put('hashid', $hash);
             Session::put('return_url', URL::base().'/'.$hash);
-            Session::put('fbuid', 123456456);
+            Session::put('fbuid', 0);
             Session::put('fbpage', '');
             Session::put('locale', 'en_US');
             Session::put('country', 'us');

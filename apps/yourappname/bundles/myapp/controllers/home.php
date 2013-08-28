@@ -8,7 +8,7 @@ class Myapp_Home_Controller extends Sdk_Controller {
         parent::__construct();
     }
 
-    public function get_index($hash = null, $page_id = 3) {
+    public function get_index($hash, $page_id) {
         $instance = Instance::with('setting')->where_instance($this->getinstance($hash))->first();
         if (empty($instance)) {
             return View::make('notactive');
