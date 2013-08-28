@@ -5,25 +5,25 @@
     <meta charset="utf-8">
 </head>
 <body>
-@foreach($languages as $key => $language)
+@foreach($table_data as $data)
 <table border="1">
     <thead>
     <tr>
-        <th>Entry No. / {{ $key }}</th>
+        <th>{{ $data['target']->title }}</th>
         <th>Date entered</th>
-        @foreach($language['labels'] as $label)
+        @foreach($data['labels'] as $label)
         <th>{{ $label }}</th>
         @endforeach
     </tr>
     </thead>
     <tbody>
     <?php $i = 1; ?>
-    @foreach($language['entries'] as $entry)
+    @foreach($data['entries'] as $entry)
     <tr>
         <td>{{ $i++ }}</td>
         <td>{{ $entry->created_at }}</td>
-        @foreach($language['labels'] as $key => $label)
-        <td>{{ @$language['values'][$entry->id][$key] }}</td>
+        @foreach($data['labels'] as $key => $label)
+        <td>{{ @$data['values'][$entry->id][$key] }}</td>
         @endforeach
     </tr>
     @endforeach

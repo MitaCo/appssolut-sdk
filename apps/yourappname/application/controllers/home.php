@@ -40,7 +40,7 @@ class Home_Controller extends Sdk_Controller {
                 $uid = $fbuser->getid();
                 if (empty($uid)) {
                     // Force user to authenticate to the application
-                    // return $fbuser->makelogin();
+                    //return $fbuser->makelogin();
                 }
                 // Check if the user has already filled out the entry form
                 $has_entered = Entry::where_instance_id($instance->id)->where_page_id(2)->where_uid($uid)->count();

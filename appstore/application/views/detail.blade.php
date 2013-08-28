@@ -35,7 +35,7 @@
                         </table>
                     </div>
                     <div class="button_store btn-group pull-right export">
-                    	<a href="{{ URL::base() }}/apps/{{ $app_name }}/admin/{{ $app_istance }}/1/export" class="give_export">Export</a>
+                    	<a href="{{ URL::base() }}/../apps/{{ $app_name }}/admin/{{ $app_istance }}/1/export" class="give_export">Export</a>
                     </div>   
                 </div>
                 

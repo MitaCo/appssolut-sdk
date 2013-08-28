@@ -17,7 +17,7 @@ class Graph_Controller extends Base_Controller {
         $targets = Target::with('age')->with('country')->with('language')->where_instance_id($instance->id)->order_by('id')->get();
         foreach($targets as $target) {
             $data[$target->id]['target'] = $target;
-            $data[$target->id]['entries'] = Entry::with('storages')->where_instance_id($instance->id)->where_page_id(3)->where_target_id($target->id)->get();
+            $data[$target->id]['entries'] = Entry::with('storages')->where_instance_id($instance->id)->where_page_id(2)->where_target_id($target->id)->get();
             $data[$target->id]['labels'] = array ();
             $data[$target->id]['values'] = array ();
             foreach($data[$target->id]['entries'] as $entry) {
@@ -28,7 +28,6 @@ class Graph_Controller extends Base_Controller {
             }
         }
 
-        $this->data['instance'] = $instance;
         $this->data['table_data'] = $data;
 
         return View::make('graph.index', $this->data);
@@ -49,7 +48,7 @@ class Graph_Controller extends Base_Controller {
             return Response::json(array('message' => 'Instance not found'), 400);
         }
 
-        $this->data['participants'] = Vote::where_instance_id($instance->id)->distinct('uid')->count('uid');
+        $this->data['participants'] = Entry::where_instance_id($instance->id)->distinct('uid')->count('uid');
 
         return View::make('graph.participants', $this->data);
     }
