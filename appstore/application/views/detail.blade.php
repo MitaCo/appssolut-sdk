@@ -20,8 +20,6 @@
                         <table class="table table-condensed cf give_table">
                             <thead class="cf">
                                 <tr>
-                                    <th scope="col">DATE CREATED</th>
-                                    <th scope="col">EXPIRE DATE</th>
                                     <th scope="col">NUMBER OF PARTICIPANTS</th>
                                     <th scope="col">INITIAL N. LIKE</th>
                                     <th scope="col">ACTUAL N. LIKE</th>
@@ -29,8 +27,6 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td data-title="DATE CREATED">{{ (!empty($element->start_date) ? date("d/m/Y", strtotime($element->start_date)): 'Not payed') }}</td>                                
-                                    <td data-title="DAYS LEFT">{{ (!empty($element->end_date) ? date("d/m/Y", strtotime($element->end_date)): 'Not payed') }}</td>
                                     <td data-title="NUMBER OF PARTICIPANTS"><span class="participants">0</span></td>
                                     <td data-title="INITIAL N. LIKE">{{ (!empty($element->fblikes) ? $element->fblikes : '0') }}</td>
                                     <td data-title="UNIQUE VISITORS"  class="visitors" id="actuallikes">loading</td>

@@ -53,12 +53,13 @@ class Manager_Controller extends Base_Controller {
             return Redirect::to_route('manage_apps')->with('message', 'no app foud');
         // dd($element);
         
-        $app = $element->app_apps_applications()->first();
+        $app = $element->app_apps_application()->first();
+
         $this->data['app_istance'] = $element->app_user_apps_publish_page_id;
         $this->data['app'] = $app;
         $this->data['element'] = $element;
         // dd($app);
-        $this->data['app_name'] = $app->app_apps_application()->first()->app_folder;
+        $this->data['app_name'] = $app->app_folder;
         return View::make('detail', $this->data);
     }
 
