@@ -18,7 +18,7 @@ class Myapp_Admin_Controller extends Base_Controller {
             ->where_instance_id($instance->id)
             ->where_target_id($target_id)
             ->where_page_id($page)
-            ->order_by('position', 'desc')
+            ->order_by('position', 'asc')
             ->get();
 
         $data['instance'] = $instance;
@@ -37,7 +37,7 @@ class Myapp_Admin_Controller extends Base_Controller {
             ->where_instance_id($instance->id)
             ->where_page_id($page)
             ->where_target_id($target_id)
-            ->order_by('position', 'desc')
+            ->order_by('position', 'asc')
             ->get();
 
         return $fields;

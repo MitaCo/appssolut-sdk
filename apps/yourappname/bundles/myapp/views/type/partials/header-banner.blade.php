@@ -1,0 +1,1 @@
+<div class="img"><img src="{{ URL::to($field->value) }}"></div>
