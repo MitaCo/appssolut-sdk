@@ -13,24 +13,9 @@ class Graph_Controller extends Base_Controller {
             return Response::json(array('message' => 'Instance not found'), 400);
         }
 
-        $data = array();
-        $targets = Target::with('age')->with('country')->with('language')->where_instance_id($instance->id)->order_by('id')->get();
-        foreach($targets as $target) {
-            $data[$target->id]['target'] = $target;
-            $data[$target->id]['entries'] = Entry::with('storages')->where_instance_id($instance->id)->where_page_id(2)->where_target_id($target->id)->get();
-            $data[$target->id]['labels'] = array ();
-            $data[$target->id]['values'] = array ();
-            foreach($data[$target->id]['entries'] as $entry) {
-                foreach($entry->storages as $storage) {
-                    $data[$target->id]['labels'][$storage->field_id] = $storage->label;
-                    $data[$target->id]['values'][$entry->id][$storage->field_id] = $storage->value;
-                }
-            }
-        }
+        $this->data['table_data'] = Myapp_Graph_Controller::get_graph_data($instance->id);
 
-        $this->data['table_data'] = $data;
-
-        return View::make('graph.index', $this->data);
+        return View::make('myapp::graph.index', $this->data);
     }
 
     public function get_visitors($hash) {

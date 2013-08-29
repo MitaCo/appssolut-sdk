@@ -70,25 +70,9 @@ class Admin_Controller extends Base_Controller {
             return Response::json(array('message' => 'Instance not found.'), 400);
         }
 
-        // Prepare entry form data for table
-        $data = array();
-        $targets = Target::with('age')->with('country')->with('language')->where_instance_id($instance->id)->order_by('id')->get();
-        foreach($targets as $target) {
-            $data[$target->id]['target'] = $target;
-            $data[$target->id]['entries'] = Entry::with('storages')->where_instance_id($instance->id)->where_page_id(2)->where_target_id($target->id)->get();
-            $data[$target->id]['labels'] = array ();
-            $data[$target->id]['values'] = array ();
-            foreach($data[$target->id]['entries'] as $entry) {
-                foreach($entry->storages as $storage) {
-                    $data[$target->id]['labels'][$storage->field_id] = $storage->label;
-                    $data[$target->id]['values'][$entry->id][$storage->field_id] = $storage->value;
-                }
-            }
-        }
+        $this->data['table_data'] = Myapp_Admin_Controller::get_export_data($instance->id);
 
-        $this->data['table_data'] = $data;
-
-        $table = View::make('admin.export', $this->data);
+        $table = View::make('myapp::admin.export', $this->data);
         $filename = $hash . '_' . date('Y-m-d-H-i-s') . '.xls';
         header("Content-type: application/vnd.ms-excel; charset=utf-8");
         header("Content-Disposition: attachment; filename=$filename");
