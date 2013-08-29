@@ -8,7 +8,8 @@ if(in_array($fbid, $fbapps)){
 	Route::group(array('prefix' => $fbid), function()
 	{
 		// fb route
-		define('FB_NAMESPACE', URI::segment(1));
+		if (!defined('FB_NAMESPACE'))
+			define('FB_NAMESPACE', URI::segment(1));
 		//
 		Route::any(FB_NAMESPACE.'/(:any?)', array('as' => 'app_load', 'uses' => 'home@index'));
 		Route::post(FB_NAMESPACE.'/(:any)/send', array('before' => 'csrf', 'as' => 'app_create_entry', 'uses' => 'home@send'));

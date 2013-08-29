@@ -101,7 +101,6 @@
     {{ HTML::script('js/farbtastic.js') }}
     
     {{ HTML::script('js/bootstrap.min.js') }}
-    {{ HTML::script('js/jquery.rating.pack.js') }}
     {{ HTML::script('js/jquery.fancybox.pack.js') }}
     {{ HTML::script('js/jquery.mjs.nestedSortable.js') }}
     {{ HTML::script('js/bootstrap-wysihtml5.js') }}

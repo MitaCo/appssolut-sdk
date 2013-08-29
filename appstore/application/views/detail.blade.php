@@ -29,7 +29,7 @@
                                 <tr>
                                     <td data-title="NUMBER OF PARTICIPANTS"><span class="participants">0</span></td>
                                     <td data-title="INITIAL N. LIKE">{{ (!empty($element->fblikes) ? $element->fblikes : '0') }}</td>
-                                    <td data-title="UNIQUE VISITORS"  class="visitors" id="actuallikes">loading</td>
+                                    <td data-title="UNIQUE VISITORS"  class="visitors" id="actuallikes">0</td>
                                 </tr>
                             </tbody>    
                         </table>
@@ -58,6 +58,5 @@
     <script>
         var APP_ID = '{{ $app_istance }}';
         var APP_URL = '{{ $app_name}}';
-        var FB_PAGE_ID = '{{ $element->app_user_apps_publish_fbpage_id }}';
     </script>
 @endsection

@@ -7,7 +7,8 @@ if(in_array($fbid, $fbapps)){
 	Route::group(array('prefix' => $fbid), function()
 	{
 		// fb route
-		define('FB_NAMESPACE', URI::segment(1));
+		if (!defined('FB_NAMESPACE'))
+			define('FB_NAMESPACE', URI::segment(1));
         Route::any(FB_NAMESPACE.'/(:num)/(:num)', array('as' => 'app_show', 'uses' => 'myapp::home@index'));
 
 	});
