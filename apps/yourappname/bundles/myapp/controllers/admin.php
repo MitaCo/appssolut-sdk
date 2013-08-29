@@ -13,7 +13,7 @@ class Myapp_Admin_Controller extends Base_Controller {
 
     // Appstore manager iFrame preview
     public static function get_preview($instance, $page, $template_id, $target_id) {
-        // Get application fields
+        // Get application fields for the preview
         $fields = Field::with('type')
             ->where_instance_id($instance->id)
             ->where_target_id($target_id)
