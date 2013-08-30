@@ -173,6 +173,7 @@ class Admin_Controller extends Base_Controller {
         $this->data['value'] = false;
         $this->data['required'] = false;
         $this->data['colorpicker'] = false;
+        $this->data['options'] = false;
 
         switch($field->type->id) {
             case 1: // header-banner
@@ -194,8 +195,12 @@ class Admin_Controller extends Base_Controller {
             case 13: // input-country
             case 14: // input-state-us
             case 15: // input-salutation
-            case 16: // input-gender
             case 17: // input-textarea
+                $this->data['value'] = true;
+                $this->data['required'] = true;
+                break;
+            case 16: // input-gender
+                $this->data['options'] = true;
                 $this->data['value'] = true;
                 $this->data['required'] = true;
                 break;
@@ -249,6 +254,15 @@ class Admin_Controller extends Base_Controller {
             $field->property = $postdata['colorpicker'];
             unset($postdata['colorpicker']);
             unset($postdata['property']);
+        }
+
+        // Save optional data to property
+        if (isset($postdata['options'])){
+            if (!empty($postdata['options'])) {
+                $field->property = implode(',', array ($postdata['options'], $postdata['options2']));
+            }
+            unset($postdata['options']);
+            unset($postdata['options2']);
         }
 
         // Save rest of data
@@ -311,11 +325,7 @@ class Admin_Controller extends Base_Controller {
             return Response::json(array('message' => 'Instance not found.'), 400);
         }
 
-        // Show message if fangate and/or entry form is disabled
-        if ($page == 1 and !$instance->setting->fangate) {
-            $this->data['msg'] = 'Fan gate page is disabled in settings';
-            return View::make('admin.disabled', $this->data);
-        }
+        // Show message if entry form is disabled
         if ($page == 2 and !$instance->setting->entry_form) {
             $this->data['msg'] = 'Entry form is disabled in settings';
             return View::make('admin.disabled', $this->data);
@@ -370,6 +380,9 @@ class Admin_Controller extends Base_Controller {
                 break;
             case 4: // text-paragraph
                 $value = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
+                break;
+            case 16: // input-gender
+                $property = 'Male,Female';
                 break;
             case 18: // submit-button
                 $value = 'Submit';

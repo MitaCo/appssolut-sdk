@@ -17,6 +17,16 @@
             <br />
         @endif
 
+        @if($options)
+        <?php $options = explode(',', $field->property); ?>
+        {{ Form::label('options', 'Male') }}
+        {{ Form::text('options', $options[0]) }}
+        <br />
+        {{ Form::label('options2', 'Female') }}
+        {{ Form::text('options2', $options[1]) }}
+        <br />
+        @endif
+
         @if($required)
             {{ Form::label('required_field','Required field') }}
             <div class="control-group">

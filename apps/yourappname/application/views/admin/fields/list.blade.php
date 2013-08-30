@@ -22,9 +22,9 @@
 </ul>
 @endif
 
-@if($page == 3)
+@if($page > 2)
 <h4>
-    Application Fields Settings
+    Fields Settings
     <a class="explain"  data-content="Is a group of features that allows you to edit predefined fields in your application. To edit a specific field click and editing field will open." data-original-title="Application Fields Settings">?</a>
 </h4>
 @endif
