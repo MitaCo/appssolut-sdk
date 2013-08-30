@@ -1,7 +1,10 @@
 <h4>Create target group</h4>
 <div id="accordion-create-target">
     <ul class="nav">
-        <li class="glyphicons circle_plus"><a ><i></i><span>Create target group</span></a></li>
+        <li class="glyphicons circle_plus">
+            <a ><i></i><span>Create target group</span></a>
+            <a class="explain" data-content="Use this feature to create a new target group by choosing the age, country, and language." data-original-title="Create target group">?</a>
+        </li>
         <div class="modal-body">
             <p>Target your application based on age, country, and language.</p>
             <br />
@@ -33,7 +36,10 @@
     </ul>
 </div>
 
-<h4>Review targeted applications</h4>
+<h4>
+    Review targeted applications
+    <a class="explain" data-content="Use this feature to edit your existing targets by changing the target settings (age, country or language)." data-original-title="Review targeted applications">?</a>
+</h4>
 <div id="accordion-targets">
     <ul class="nav">
         @foreach($targets as $target)
