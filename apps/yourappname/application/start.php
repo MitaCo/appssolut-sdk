@@ -64,6 +64,7 @@ Autoloader::map(array(
     'URIhelper' => path('app').'libraries/URIhelper.php',
     'Fbdata_Controller' => path('app').'controllers/fbdata.php',
     'Myapp_Admin_Controller' => path('bundle').'myapp/controllers/admin.php',
+    'Myapp_Graph_Controller' => path('bundle').'myapp/controllers/graph.php',
 ));
 
 /*

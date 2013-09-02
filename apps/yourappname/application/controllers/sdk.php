@@ -57,7 +57,7 @@ class Sdk_Controller extends Base_Controller {
     }
 
     public function getinstance($hash = null) {
-        if (!defined('FB_NAMESPACE') OR empty($this->instance_id))
+        if (!defined('FB_NAMESPACE') || empty($this->instance_id))
             $this->instance_id = $this->get_instanceHash($hash);
         return $this->instance_id;
     }
@@ -70,7 +70,7 @@ class Sdk_Controller extends Base_Controller {
 
     private function get_instanceFromPage($page) {
         // from facebook
-        // $app = App:: where('app_user_apps_publish_fbpage_id', '=', $page)->where('app_apps_application_id', '=', APPSOLUTE_APPID)->first();
+        //$app = App:: where('app_user_apps_publish_fbpage_id', '=', $page)->where('app_apps_application_id', '=', APPSOLUTE_APPID)->first();
         $app = App:: where('app_user_apps_publish_fbpage_id', '=', $page)->where('app_apps_fbapp_id', '=', APPSSOLUT_FB_ID)->first();
         // dd($app);
         if (!$this->admin and (empty($app->status) or $app->status != 'A'))
@@ -105,7 +105,7 @@ class Sdk_Controller extends Base_Controller {
             Session::put('fbpage', '');
             Session::put('locale', 'en_US');
             Session::put('country', 'us');
-            Session::put('age', 21);
+            Session::put('age', 13);
             Session::put('liked', true);
             Session::put('isadmin', false);
             return $app->app_user_apps_publish_page_id;

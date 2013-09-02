@@ -103,7 +103,7 @@ class Fbdata_Controller extends Base_Controller {
 
     public function getAge() {
         if (empty($this->age))
-            $this->age = '16';
+            $this->age = '13';
         return $this->age;
     }
 

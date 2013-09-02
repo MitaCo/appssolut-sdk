@@ -4,7 +4,7 @@ class Insert_Data_To_Countries {
 
 	public function up()
 	{
-        DB::query("insert into countries (id, code, name, created_at, updated_at) values (1, 'default', 'All', '2013-07-29 12:00:00', '2013-07-29 12:00:00');");
+        DB::query("insert into countries (id, code, name, created_at, updated_at) values (1, 'DEFAULT', 'All', '2013-07-29 12:00:00', '2013-07-29 12:00:00');");
         DB::query("insert into countries (id, code, name, created_at, updated_at) values (2, 'AF', 'Afghanistan', '2013-07-29 12:00:00', '2013-07-29 12:00:00');");
         DB::query("insert into countries (id, code, name, created_at, updated_at) values (3, 'AX', 'Åland Islands', '2013-07-29 12:00:00', '2013-07-29 12:00:00');");
         DB::query("insert into countries (id, code, name, created_at, updated_at) values (4, 'AL', 'Albania', '2013-07-29 12:00:00', '2013-07-29 12:00:00');");

@@ -106,7 +106,7 @@ class Home_Controller extends Sdk_Controller {
         // Get all input type fields (form fields)
         $expected_fields = Field::with('type')
             ->where_instance_id($instance->id)
-            ->where_page_id(3)
+            ->where_page_id(2)
             ->where_target_id($target->id)
             ->where_required(1)
             ->where_in('type_id', array(6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21))
