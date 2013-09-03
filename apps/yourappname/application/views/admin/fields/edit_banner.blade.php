@@ -11,19 +11,18 @@
             <!-- The file uploads will be shown here -->
         </ul>
         <div id="drop">
-            Upload image
             <a>Choose from your computer</a>
             <input type="file" name="value"/>
         </div>
     </div>       
     <div class="modal-footer">
         <a href="{{ URL::to_route('app_list_fields', array($instance->instance, $page)) }}" class="btn cancel" data-dismiss="modal">Cancel</a>
-        <button class="modal-button btn">Save</button>
+        <button class="modal-button btn">Continue</button>
     </div>
 
 {{ Form::close() }}
     
-@if($page == 3)
+@if($page == 2)
     {{ Form::open(URL::to_route('app_delete_field', array ($instance->instance, $page, $target_id)), 'DELETE') }}
     {{ Form::hidden('field_id', $field->id) }}
     {{ Form::button('Delete', array('class' => 'btn delete_button btn-danger')) }}

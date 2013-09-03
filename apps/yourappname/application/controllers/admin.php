@@ -265,6 +265,10 @@ class Admin_Controller extends Base_Controller {
             unset($postdata['options2']);
         }
 
+        if (isset($postdata['value'])) {
+            $postdata['value'] = nl2br($postdata['value']);
+        }
+
         // Save rest of data
         $field->fill($postdata);
         if ($field->save()) {

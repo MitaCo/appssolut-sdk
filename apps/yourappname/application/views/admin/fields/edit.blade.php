@@ -13,7 +13,7 @@
 
         @if($value)
             {{ Form::label('value', 'Value') }}
-            {{ Form::textarea('value', $field->value) }}
+        {{ Form::textarea('value', preg_replace('/<br(\s+)?\/?>/i', '', $field->value)) }}
             <br />
         @endif
 
@@ -48,7 +48,7 @@
     </div>
 {{ Form::close() }}
 
-@if($page == 3)
+@if($page == 2)
     {{ Form::open(URL::to_route('app_delete_field', array ($instance->instance, $page, $target_id)), 'DELETE') }}
     {{ Form::hidden('field_id', $field->id) }}
     {{ Form::button('Delete', array('class' => 'btn delete_button btn-danger')) }}
