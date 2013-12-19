@@ -193,33 +193,6 @@ p{
     display: block;
     padding-top: 20px;
 }
-.control-group:not(#foo) {
-
-}
-.control-group:not(#foo) input[type="checkbox"], .control-group:not(#foo) input[type="radio"] {
-    visibility: hidden;
-}
-.control-group:not(#foo) input[type="checkbox"] + label, .control-group:not(#foo) input[type="radio"] + label {
-    cursor: pointer;
-    margin-left: -20px;
-}
-
-.control-group:not(#foo) input[type="checkbox"]:checked + label:before {
-    background-position: bottom left;
-}
-.control-group:not(#foo) input[type="checkbox"] + label:before {
-    background-position: top left;
-}
-.control-group:not(#foo) input[type="checkbox"] + label:before, .control-group:not(#foo) input[type="radio"] + label:before {
-    content: '';
-    width: 19px;
-    height: 19px;
-    display: inline-block;
-    vertical-align: middle;
-    margin: -4px 1px 0 0;
-    background: url("http://ow.ly/eIqbW") no-repeat;
-}
-
 /*******aplications css end********/
 
 
@@ -544,6 +517,52 @@ p{
     color: #6b6969;
     text-decoration: none;
 
+}
+#drag-drop-go-back {
+    height: 47px;
+    padding: 0;
+    color: #6b6969;
+    font-size: 13px;
+    width: 99%;
+    white-space: nowrap;
+}
+#drag-drop-go-back.glyphicons a i:before {
+    color: #404041;
+    font-size: 17px;
+    left: 20px;
+    top: 5px;
+}
+#accordion-targets #drag-drop-go-back a {
+    height: 80px;
+    border: 1px solid #cbcbcb;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    -moz-background-clip: padding;
+    -webkit-background-clip: padding-box;
+    background-clip: padding-box;
+    background-color: #f5efeb;
+    background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDIwNiA4MCIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+PGxpbmVhckdyYWRpZW50IGlkPSJoYXQwIiBncmFkaWVudFVuaXRzPSJvYmplY3RCb3VuZGluZ0JveCIgeDE9IjUwJSIgeTE9IjEwMCUiIHgyPSI1MCUiIHkyPSItMS40MjEwODU0NzE1MjAyZS0xNCUiPgo8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZGRkIiBzdG9wLW9wYWNpdHk9IjEiLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZmZmIiBzdG9wLW9wYWNpdHk9IjEiLz4KICAgPC9saW5lYXJHcmFkaWVudD4KCjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIyMDYiIGhlaWdodD0iODAiIGZpbGw9InVybCgjaGF0MCkiIC8+Cjwvc3ZnPg==);
+    background-image: -moz-linear-gradient(bottom, #ddd 0%, #fff 100%);
+    background-image: -o-linear-gradient(bottom, #ddd 0%, #fff 100%);
+    background-image: -webkit-linear-gradient(bottom, #ddd 0%, #fff 100%);
+    background-image: linear-gradient(bottom, #ddd 0%, #fff 100%);
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    color: #000;
+    line-height: normal;
+    text-decoration: none;
+    font-size: 14px;
+    text-shadow: inset 0 -5px 5px rgba(2,2,2,.25);
+}
+#accordion-targets #drag-drop-go-back a:hover, #accordion-targets #drag-drop-go-back a:focus{
+    background-position:0 0;
+}
+#drag-drop-go-back a span {
+    padding-left: 31px;
+    float: right;
+    padding-right: 5%;
 }
 .manage #sortable .glyphicons.bin i:before{
     color:#93A6C2;
@@ -928,4 +947,148 @@ form#upload{
     min-height: 230px;
     background-repeat: no-repeat;
     margin-top: 15%;
+}
+.wrapper .voted_button{
+    width: 97%;
+}
+#accordion-targets > ul > li{
+    float: left;
+    width: 32.66%;
+    margin-right: 1%;
+    background-color: #FFF;
+}
+#accordion-targets > ul > li:nth-child(3n){
+   margin-right: 0;
+}
+.targeting input[type='text'], .targeting textarea, .targeting .uneditable-input{
+    width:182px;
+}
+.targeting select{
+    width:196px;
+}
+.targeting .store {
+    padding: 0;
+    position: relative;
+    background-color: #FFF;
+}
+.targeting_body #drag-drop-go-back{
+    display: table;
+    width: 94%;
+    float: left;
+    line-height: 1.3em;
+    height:auto;
+    padding: 3%;
+    position:relative;
+    white-space: normal;
+}
+.targeting_body > p, #accordion-create-target p{
+    height: 58px;
+    overflow: hidden;
+    color: #fff;
+    font-size: 14px;
+    background-color:#9fbe2d;
+    padding: 10px 13px 40px 13px;
+}
+#accordion-create-target p{
+    padding-bottom:0px;
+}
+.targeting_body  form, #accordion-create-target form{
+    padding: 0 3%;
+    border: none;
+    border-radius: 0;
+    box-shadow: inherit;
+    margin-bottom: 20px;
+}
+.current_target{
+    background:white;
+}
+.inline_content, #inline{
+    display:none;
+}
+.fancybox-multitargeting + .fancybox-overlay{
+    /*background-color: #a3cd39;*/
+    background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiPjxsaW5lYXJHcmFkaWVudCBpZD0iaGF0MCIgZ3JhZGllbnRVbml0cz0ib2JqZWN0Qm91bmRpbmdCb3giIHgxPSI1MCUiIHkxPSIxMDAlIiB4Mj0iNTAlIiB5Mj0iLTEuNDIxMDg1NDcxNTIwMmUtMTQlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2RkZCIgc3RvcC1vcGFjaXR5PSIwLjUiLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjZmZmIiBzdG9wLW9wYWNpdHk9IjAuNSIvPgogICA8L2xpbmVhckdyYWRpZW50PgoKPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjaGF0MCkiIC8+Cjwvc3ZnPg==);
+    background-image: -moz-linear-gradient(bottom, rgba(221,221,221,.5) 0%, rgba(255,255,255,.5) 100%);
+    background-image: -o-linear-gradient(bottom, rgba(221,221,221,.5) 0%, rgba(255,255,255,.5) 100%);
+    background-image: -webkit-linear-gradient(bottom, rgba(221,221,221,.5) 0%, rgba(255,255,255,.5) 100%);
+    background-image: linear-gradient(bottom, rgba(221,221,221,.5) 0%, rgba(255,255,255,.5) 100%);
+}
+.fancybox-multitargeting .fancybox-inner{
+    background: none;
+    box-shadow: none;
+}
+.targeting h4{
+    font-size: 24px;
+    font-weight: bold;
+}
+.targeting h4 + p{
+    font-size: 14px;
+    color: #9FBE2D;
+    background-color: #F7F9EA;
+    border-left: 3px solid #9FBD2D;
+    padding: 0.4% 0 0.4% 1.5%;
+    line-height: normal;
+}
+#accordion-targets li > a, .store > h4{
+    font-weight: normal;
+    color: #FFF;
+    font-size: 24px;
+    text-shadow: 0 -2px 0 #8DBB3F;
+    background-color: #BDD741;
+    border-radius: 4px 4px 0 0;
+    padding: 13px 13px 17px 13px;
+}
+#accordion-targets li > a span, .store > h4 span, #drag-drop-go-back .explain-btn span{
+   color: #BED741;
+    margin-right: 11px;
+    float: right;
+    background: #FFF;
+    border-radius: 50%;
+    padding: 2%;
+    text-align: center;
+    width: 21px;
+    margin-top: -5px;
+}
+#drag-drop-go-back .explain-btn span{
+   position: absolute;
+    bottom: 15px;
+    right: 1%;
+}
+.store{
+    margin-top: 40px;
+}
+.store > h4{
+    margin:0;
+}
+#drag-drop-go-back .btn.back{
+    margin-left: 3%;
+    width:auto;
+    height:auto;
+    border: 1px solid #000;
+    color: #B3D241;
+    -moz-background-clip: padding;
+    -webkit-background-clip: padding-box;
+    background-clip: padding-box;
+    background-color: #fff;
+    -moz-box-shadow: inset 0 2px 2px rgba(255,255,255,.2);
+    -webkit-box-shadow: inset 0 2px 2px rgba(255,255,255,.2);
+    box-shadow: inset 0 2px 2px rgba(255,255,255,.2);
+    background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiPjxsaW5lYXJHcmFkaWVudCBpZD0iaGF0MCIgZ3JhZGllbnRVbml0cz0ib2JqZWN0Qm91bmRpbmdCb3giIHgxPSI1MCUiIHkxPSIxMDAlIiB4Mj0iNTAlIiB5Mj0iLTEuNDIxMDg1NDcxNTIwMmUtMTQlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzI3MjcyNyIgc3RvcC1vcGFjaXR5PSIxIi8+CjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzVmNWY1ZiIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgIDwvbGluZWFyR3JhZGllbnQ+Cgo8cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0idXJsKCNoYXQwKSIgLz4KPC9zdmc+);
+    background-image: -moz-linear-gradient(bottom, #272727 0%, #5f5f5f 100%);
+    background-image: -o-linear-gradient(bottom, #272727 0%, #5f5f5f 100%);
+    background-image: -webkit-linear-gradient(bottom, #272727 0%, #5f5f5f 100%);
+    background-image: linear-gradient(bottom, #272727 0%, #5f5f5f 100%);
+    font-weight: bold;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
+    padding: 7px 12px;
+}
+#drag-drop-go-back .btn.back:hover,#drag-drop-go-back .btn.back:focus{
+    background-position: 0 0;
+    color:#FFF;
+}
+#drag-drop-go-back i {
+    font-weight:bold;
+}
+.targeting_body.default{
+    min-height: 546px;
 }

@@ -970,4 +970,50 @@ class Admin_Controller extends Base_Controller {
         }
         return $target;
     }
+
+    /*Multitargeting for app*/
+    public function get_multitargeting($hash = null, $page = 1, $template_id = 1, $target = 1) {
+        if (empty($hash)) {
+            return Response::json(array('message' => 'Instance not found'), 400);
+        }
+        $instance = Instance::with('setting')->where_instance($hash)->first();
+        if (empty($instance)) {
+            return Response::json(array('message' => 'Instance not found'), 400);
+        }
+        $target = Target::where_instance_id($instance->id)->where_id($target)->first();
+        if (empty($target)) {
+            $target = Target::where_instance_id($instance->id)->order_by('id')->first();
+        }
+        $this->data['instance'] = $instance;
+        $this->data['page'] = $page;
+        $this->data['target_id'] = $target->id;
+        $this->data['template'] = $template_id;
+        
+        $this->data['ages'] = Age::order_by('value')->lists('name', 'id');
+        $this->data['countries'] = Country::order_by('id')->lists('name', 'id');
+        $this->data['languages'] = Language::order_by('id')->lists('name', 'id');
+        $this->data['targets'] = Target::where_instance_id($instance->id)->order_by('id')->get();
+        $this->data['current_target_id'] = $target;
+        Session::has('first_time') ? Session::put('first_time', '0') : Session::put('first_time', '1');
+       
+        return View::make('admin.fields.multitargeting', $this->data);
+    }
+
+    function get_active_target($hash, $target_id = 1) {
+        $instance = Instance::where_instance($hash)->first();
+        if(empty($instance)) {
+            return Response::json(array('message' => 'Instance not found'), 400);
+        }
+        $target = Target::where_instance_id($instance->id)->where_id($target_id)->first();
+        if (empty($target)) {
+            $message = 'Default target';
+            $returnval = null;
+            return Response::json(array('message' => $message, 'val' => $returnval), 400);
+        } else  {
+            $message = 'Showing target group: '.$target->title;
+            $returnval = $target->id;
+            return Response::json(array('message' => $message, 'val' => $returnval), 200);
+        }
+
+    }
 }

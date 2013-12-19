@@ -96,7 +96,26 @@ $(document).ready(function() {
 
             $(document).on("click", "#app_commands a", function(event) {
                 event.preventDefault();
-                if ($(this).attr('class') == 'drag-drop-fields') {
+                if ($(this).attr('class') == 'dragdrop' || $(this).attr('class') == 'multitargeting') {
+                   
+                    $('#app_commands').remove();
+                    $('#app_preview').html('<iframe frameBorder="0" id="appframepreview_' + new Date().getTime() + '" width="940" height="800" src="/apps/' + APP_URL + '/admin/' + APP_ID + '/' + APP_PAGE + '/' + $(this).attr('class') + "/" + TEMPLATE + '/' + APP_LANG + '">');
+                    
+                    $('iframe[id^="appframepreview_"]').load(function(){
+                        //$('#app_commands').remove();
+                        var frame = $('iframe[id^="appframepreview_"]');
+                        var frameBody = frame.contents().find('body');
+                        
+                        frameBody.find('div[id^="drag-drop-go-back"]').click(function(e){
+                            
+                            if ($(this).data('target') > 0){
+                                window.location = '/appstore/manager/' + APP_ID + '/edit/' + APP_PAGE + '/' + $(this).data('target') ;
+                            }
+                            else  location.reload();
+                        });
+                    });
+                }
+                /*if ($(this).attr('class') == 'drag-drop-fields') {
                     $('#app_commands').hide();
                     $('#app_preview').html('<iframe id="appframepreview" width="1170" height="800" src="/apps/' + APP_URL + '/admin/' + APP_ID + '/' + APP_PAGE + '/dragdrop/' + TEMPLATE + '/' + APP_LANG + '">');
                     $('#appframepreview').load(function(){
@@ -107,7 +126,7 @@ $(document).ready(function() {
                         });
                         
                     });
-                } else {
+                }*/ else {
                     $('#myModal_content').load($(this).attr("href"), function() {
                         upload();
                         deleteform = $('.delete_button ').closest("form");

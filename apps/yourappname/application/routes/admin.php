@@ -10,6 +10,8 @@ Route::get('admin/pages', array('as' => 'app_pages', 'uses' => 'admin@pages'));
 Route::get('admin/(:any)/(:num)/fields/(:num?)', array('as' => 'app_list_fields', 'uses' => 'admin@fields'));
 Route::get('admin/(:any)/(:num)/fields/(:num)/edit/(:num)', array('as' => 'app_edit_field', 'uses' => 'admin@edit_field'));
 Route::get('admin/(:any)/(:num)/dragdrop/(:num)/(:num?)', array('as' => 'app_dragdrop', 'uses' => 'admin@drag_drop'));
+Route::get('admin/(:any)/(:num)/multitargeting/(:num)/(:num?)', array('as' => 'app_multitarget', 'uses' => 'admin@multitargeting'));
+
 //
 Route::post('admin/(:any)/(:num)/fields/draggable/(:num)', array('as' => 'app_create_draggable_field', 'uses' => 'admin@create_draggable_field'));
 //
@@ -24,3 +26,6 @@ Route::get('admin/(:any)/(:num)/settings/(:any)/(:num)', array('as' => 'app_edit
 //
 Route::put('admin/(:any)/(:num)/settings', array('as' => 'app_save_settings', 'uses' => 'admin@update_setting'));
 Route::put('admin/(:any)/target/(:num)', array('as' => 'app_update_target', 'uses' => 'admin@update_target'));
+
+// get_active_target
+Route::get('admin/(:any)/gettarget/(:num?)', array('as' => 'app_get_target', 'uses' => 'admin@active_target'));

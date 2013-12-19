@@ -1,0 +1,1 @@
+This is the D:\wamp\www\appssolut-sdk\apps\yourappname\application\views/test.blade.php view

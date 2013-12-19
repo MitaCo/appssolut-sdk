@@ -1,79 +1,103 @@
 $(document).ready(function(){
+    $('.explain').popover({
+        /*placement:'bottom', */
+        trigger: 'hover'
+    });
     //$(function() {
-    $( "#sortable" ).sortable({
-        revert: true,
-        cursor: 'pointer',
-        placeholder: "ui-state-highlight",
-        start: function(event, ui) {
-            // Not a new field, get initial position
-            $(this).data('newelement', 0);
-            $(this).data('old_position', ui.item.index());
-            
-        },
-        receive: function(event, ui) {
-            // Get type id from new field and set flag
-            $(this).data('id', ui.item[0].id);
-            $(this).data('newelement', 1);
-            
+    if($( "#sortable" ).length){
+        $( "#sortable" ).sortable({
+            containment: 'document',
+            revert: true,
+            cursor: 'pointer',
+            placeholder: "ui-state-highlight",
+            start: function(event, ui) {
+                // Not a new field, get initial position
+                $(this).data('newelement', 0);
+                $(this).data('old_position', ui.item.index());
+                
             },
-        update: function(event, ui) {
-            //show loading icon
-            $('#inner-wrap').showLoading();
-            
-            if ($(this).data('newelement') == 1) {
-            var $url = '/apps/' + APP_URL + '/admin/' + APP_ID + '/' + APP_PAGE + '/fields/draggable/' + APP_LANG; // POST
-            var $type_id = $(this).data('id').replace('type_', '');
-            var $position = ui.item.index() + 1;
-            $.ajax({
-                url: $url,
-                type: 'POST',
-                data: {
-                type_id: $type_id,
-                position: $position
-                },
-                success: function(data) {
-                    // Save returned field_id
-                    var $field_id = 'field_' + data.field_id;
-                    ui.item.attr('id', $field_id);
-                    // Reload preview
-                    location.reload();
-                    //$('#appframepreview').attr('src', $('#appframepreview').attr("src"));
+            sort : function(e, ui){
+                var offset = top.$('.fb_preview').offset();
+                var windowOffset = $(window.top).scrollTop();
+                var h = $(window.top).height();
+                var height = 805;//top.$('.fb_preview').height();
+                //console.log( e.pageY, 'math', e.clientY - h)
+                //console.log("wo:", windowOffset);
+               
+                if(e.clientY + offset.top < (h/4) + $(window.top).scrollTop() - 50 || e.clientY + offset.top > ((h/2) + (h/4)) + $(window.top).scrollTop() + 50 ) {
+                    //console.log(e.clientY  + offset.top ,'<', (h/4) + $(window.top).scrollTop(), ' - ' ,  e.clientY + offset.top,  '>', (h/2) + (h/4)+ $(window.top).scrollTop());
+                    $(top.$('html, body')).stop().animate(
+                        { scrollTop:  e.clientY}, 600
+                       
+                    )    
                 }
-            });
-            } else {
-                var $url = '/apps/' + APP_URL + '/admin/' + APP_ID + '/' + APP_PAGE + '/fields/position/' + APP_LANG; // PUT
-                var $field_id = ui.item[0].id.replace('field_', '');
-                var $old_position = $(this).data('old_position') + 1;
-                var $new_position = ui.item.index() + 1;
+                else{
+                    //console.log("else", e.clientY + offset.top,'<', (h/4) + $(window.top).scrollTop(), ' - ' ,  e.clientY + offset.top,  '>', (h/2) + (h/4) + $(window.top).scrollTop());
+                }
+                
+            },
+            receive: function(event, ui) {
+                // Get type id from new field and set flag
+                $(this).data('id', ui.item[0].id);
+                $(this).data('newelement', 1);
+                
+                },
+            update: function(event, ui) {
+                //show loading icon
+                $('#inner-wrap').showLoading();
+                
+                if ($(this).data('newelement') == 1) {
+                var $url = '/apps/' + APP_URL + '/admin/' + APP_ID + '/' + APP_PAGE + '/fields/draggable/' + APP_LANG; // POST
+                var $type_id = $(this).data('id').replace('type_', '');
+                var $position = ui.item.index() + 1;
                 $.ajax({
-                        url: $url,
-                        type: 'PUT',
-                        data: {
-                        field_id: $field_id,
-                        old_position: $old_position,
-                        new_position: $new_position
+                    url: $url,
+                    type: 'POST',
+                    data: {
+                    type_id: $type_id,
+                    position: $position
                     },
                     success: function(data) {
-                        // reload preview
+                        // Save returned field_id
+                        var $field_id = 'field_' + data.field_id;
+                        ui.item.attr('id', $field_id);
+                        // Reload preview
                         location.reload();
                         //$('#appframepreview').attr('src', $('#appframepreview').attr("src"));
                     }
                 });
+                } else {
+                    var $url = '/apps/' + APP_URL + '/admin/' + APP_ID + '/' + APP_PAGE + '/fields/position/' + APP_LANG; // PUT
+                    var $field_id = ui.item[0].id.replace('field_', '');
+                    var $old_position = $(this).data('old_position') + 1;
+                    var $new_position = ui.item.index() + 1;
+                    $.ajax({
+                            url: $url,
+                            type: 'PUT',
+                            data: {
+                            field_id: $field_id,
+                            old_position: $old_position,
+                            new_position: $new_position
+                        },
+                        success: function(data) {
+                            // reload preview
+                            location.reload();
+                            //$('#appframepreview').attr('src', $('#appframepreview').attr("src"));
+                        }
+                    });
+                }
             }
-        }
-    });
-    $( ".draggable li" ).draggable({
-        connectToSortable: "#sortable",
-        cursor: "move",
-        revert: "invalid",
-        /*appendTo: 'body',
-        containment: 'window',
-        scroll: false,*/
-        helper: 'clone'
-        
         });
-    $( "ul, li" ).disableSelection();
-
+        $( ".draggable li" ).draggable({
+            connectToSortable: "#sortable",
+            cursor: "move",
+            revert: "invalid",
+            containment: 'document',
+            helper: 'clone'
+            
+            });
+        $( "ul, li" ).disableSelection();
+    }
 
     $(document).on("click", ".delete-field", function(event) {
         var ok = confirm('Are you sure you want to delete this item?');
@@ -107,8 +131,11 @@ $(document).ready(function(){
 
     $(document).on("click", "#sortable .edit-field", function(event) {
         event.preventDefault();
-        $('#myModal_content').load( $(this).attr("href") );
+        $('#myModal_content').load( $(this).attr("href"), function(){
+            /**/
+        });
         $('#myModal').modal('show');
+        
 
     });
     $('#myModal').on('shown', function () {
@@ -116,6 +143,7 @@ $(document).ready(function(){
         if ($('#colorpicker').size() > 0){
             $('#colorpicker').farbtastic('#colorpickerColor');
         }
+        
     })
     $(document).on("click", "#myModal_content a.cancel", function(event) {
         event.preventDefault();
@@ -142,6 +170,53 @@ $(document).ready(function(){
                 }
         });
         
+    });
+
+    $(document).on("submit", ".targeting form", function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function(data) {
+
+                //alert(data.message);
+                // reload preview
+                
+                /*if($form.attr('class') == 'localization') {alert("333");
+                   
+                    $('#myModal_content').load('/apps/' + APP_URL + '/admin/' + APP_ID + '/' + APP_PAGE + '/settings/localization/'+ APP_LANG, function() {
+                        
+                        //current_target ui-state-active
+                        $('.current_target').addClass( "ui-state-active" );
+                    }); 
+                    
+
+                    APP_LANG = data.val;
+                    // window.location = '/appstore/manager/' + APP_ID + '/edit/' + APP_PAGE + '/' + data.val ;
+                    var src = '/apps/' + APP_URL + '/admin/' + APP_ID + '/' + APP_PAGE + '/preview/' + TEMPLATE + '/' + APP_LANG;
+                    //alert("tttttttt '" + $('#appframepreview').attr("src") + "'.");
+                    
+                    if (/MSIE\s([\d.]+)/.test(navigator.userAgent)) {
+                        $('#app_preview').empty().append('<iframe id="appframepreview" style="width:695px" width="695" height="800" src="' + src + '">');
+                    }
+                    else{
+                       $('#appframepreview').attr('src', src);
+                    }
+                   
+
+                } */
+               
+                location.reload();
+
+            },
+            error: function(data){
+                //console.log(data);
+                if ($.parseJSON(data.responseText).message)
+                    alert($.parseJSON(data.responseText).message)
+            }
+        });
     });
 
 });
@@ -259,5 +334,7 @@ function upload() {
 
         return (bytes / 1000).toFixed(2) + ' KB';
     }
+
+    
 };
 

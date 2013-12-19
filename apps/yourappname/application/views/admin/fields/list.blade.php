@@ -49,7 +49,7 @@
 </h4>
 <ul>
     <li class="glyphicons circle_plus">
-        <a class="drag-drop-fields" href=""><i></i><span>Create & Move Fields</span></a>
+        <a class="dragdrop" href=""><i></i><span>Create & Move Fields</span></a>
         <a class="explain" data-content="If you need more fields in your application, use this feature to add new fields with the drag and drop system. Use this feature also to move existing fields to the desired position on your application, or to remove application fields." data-original-title="Create & Move Fields">?</a>
     </li>
 </ul>
@@ -62,7 +62,7 @@
 </h4>
 <ul>
     <li class="glyphicons circle_plus">
-        <a href="{{ URL::to_route('app_edit_settings', array ($instance->instance, $page, 'localization', $target_id)) }}"><i></i><span>Targeting</span></a>
+        <a class="multitargeting" href="{{ URL::to_route('app_edit_settings', array ($instance->instance, $page, 'localization', $target_id)) }}"><i></i><span>Targeting</span></a>
         <a class="explain" data-content="Use this feature to make custom previews of your application for different users groups. You can target different groups by choosing the users age, country or language." data-original-title="Targeting">?</a>
     </li>
     <li class="glyphicons circle_plus">

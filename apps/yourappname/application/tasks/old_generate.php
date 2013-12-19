@@ -3,7 +3,7 @@
 /**
  * Laravel Generator
  * 
- * Rapidly create models, views, migrations + schema, assets, tests, etc.
+ * Rapidly create models, views, migrations + schema, assets, etc.
  *
  * USAGE:
  * Add this file to your Laravel application/tasks directory
@@ -30,12 +30,10 @@ class Generate_Task
     public static $js_dir  = 'js/';
     public static $coffee_dir  = 'js/coffee/';
 
-
     /*
      * The content for the generate file
      */
     public static $content;
-
 
     /**
      * As a convenience, fetch popular assets for user
@@ -47,11 +45,13 @@ class Generate_Task
         'backbone.js' => 'http://backbonejs.org/backbone.js',
         'underscore.js' => 'http://underscorejs.org/underscore.js',
         'handlebars.js' => 'http://cloud.github.com/downloads/wycats/handlebars.js/handlebars-1.0.rc.1.js',
+        'bootstrap.min.js' => 'https://raw.github.com/twitter/bootstrap/master/docs/assets/js/bootstrap.min.js',
 
         // CSS
-        'normalize.css' => 'https://raw.github.com/necolas/normalize.css/master/normalize.css'
+        'normalize.css' => 'https://raw.github.com/necolas/normalize.css/master/normalize.css',
+        'bootstrap-responsive.css' => 'https://raw.github.com/twitter/bootstrap/master/docs/assets/css/bootstrap-responsive.css',
+        'bootstrap.css' => 'https://raw.github.com/twitter/bootstrap/master/docs/assets/css/bootstrap.css'
     );
-    
 
     /**
      * Time Savers
@@ -64,7 +64,6 @@ class Generate_Task
     public function a($args)   { return $this->assets($args); }
     public function t($args)   { return $this->test($args); }
     public function r($args)   { return $this->resource($args); }
-    public function ty($args)   { return $this->type($args); }
 
 
     /**
@@ -83,7 +82,6 @@ generate:migration [name] [field:type]
 generate:test [name] [methods]
 generate:assets [asset]
 generate:resource [name] [methods/views]
-generate:type [name] 
 \n=====================END====================\n
 EOT;
     }
@@ -118,7 +116,7 @@ EOT;
         $class_name = $this->prettify_class_name($class_name);
 
         // Begin building up the file's content
-        Template::new_class($class_name . '_Controller', 'Base_Controller');
+        Content::new_class($class_name . '_Controller', 'Base_Controller');
 
         $content = '';
         // Let's see if they added "restful" anywhere in the args.
@@ -126,6 +124,7 @@ EOT;
 
             $args = array_diff($args, array('restful'));
             $content .= 'public $restful = true;';
+
         }
 
         // Now we filter through the args, and create the funcs.
@@ -133,11 +132,11 @@ EOT;
             // Were params supplied? Like index:post?
             if ( strpos($method, ':') !== false ) {
                 list($method, $verb) = explode(':', $method);
-                $content .= Template::func("{$verb}_{$method}");
+                $content .= Content::func("{$verb}_{$method}");
             } else {
                 $action = $restful ? 'get' : 'action';
 
-                $content .= Template::func("{$action}_{$method}");
+                $content .= Content::func("{$action}_{$method}");
             }
         }
 
@@ -170,7 +169,7 @@ EOT;
         $file_path = $this->path('models') . strtolower("$class_name.php");
 
         // Begin building up the file's content
-        Template::new_class($class_name, 'Eloquent' );
+        Content::new_class($class_name, 'Eloquent' );
         $this->prettify();
 
         // Create the file
@@ -249,39 +248,6 @@ EOT;
         }
     }
 
-
-    /**
-     * Insert data inside type table and create appropiate view for it
-     *
-     * USAGE:
-     *
-     * php artisan generate:type home 
-     * 
-     *
-     * @param $args array
-     * @return void
-     */
-    public function type($args)
-    {
-        
-        if ( empty($args) ) {
-            echo "Error: Please provide a name for your type.\n";
-            return;
-        }
-        $name = implode(' ', $args);
-        
-        //check validation and inser data
-        if (Type::validateAndinsert($name)){
-            echo Type::validateAndinsert($name);
-            return;
-        }
-
-        //create view inside /view/type/partials
-        $this->view(['type.partials.'.Str::slug(Str::lower($name), '-')]);
-
-        echo "Success: View has benn created and data has been inserted.\n";
-        return;
-    }
 
     /**
      * Create assets in the public directory
@@ -364,31 +330,16 @@ EOT;
 
         $class_name = ucwords(array_shift($args));
 
-        $file_path = $this->path('tests');
-        if ( isset($this->should_include_tests) ) {
-            $file_path .= 'controllers/';
-        }
-        $file_path .= strtolower("{$class_name}.test.php");
+        $file_path = $this->path('tests') . strtolower("{$class_name}.test.php");
 
         // Begin building up the file's content
-        Template::new_class($class_name . '_Test', 'PHPUnit_Framework_TestCase');
+        Content::new_class($class_name . '_Test', 'PHPUnit_Framework_TestCase');
 
         // add the functions
         $tests = '';
         foreach($args as $test) {
-            // Don't worry about tests for non-get methods for now.
-            if ( strpos($test, ':') !== false ) continue;
-            if ( $test === 'restful' ) continue;
-
             // make lower case
-            $func = Template::func("test_{$test}");
-
-            // Only if we're generating a resource.
-            if ( isset($this->should_include_tests) ) {
-                $func = Template::test($class_name, $test);
-            }            
-
-            $tests .= $func;
+            $tests .= Content::func("test_{$test}");
         }
 
         // add funcs to class
@@ -453,7 +404,7 @@ EOT;
         list($table_action, $table_event) = $this->parse_action_type($class_name);
 
         // Now, we begin creating the contents of the file.
-        Template::new_class($class_name);
+        Content::new_class($class_name);
 
         /* The Migration Up Function */
         $up = $this->migration_up($table_event, $table_action, $table_name, $args);
@@ -470,10 +421,10 @@ EOT;
 
     protected function migration_up($table_event, $table_action, $table_name, $args)
     {
-        $up = Template::func('up');
+        $up = Content::func('up');
 
         // Insert a new schema function into the up function.
-        $up = $this->add_after('{', Template::schema($table_action, $table_name), $up);
+        $up = $this->add_after('{', Content::schema($table_action, $table_name), $up);
 
         // Create the field rules for for the schema
         if ( $table_event === 'create' ) {
@@ -497,16 +448,16 @@ EOT;
 
     protected function migration_down($table_event, $table_action, $table_name, $args)
     {
-        $down = Template::func('down');
+        $down = Content::func('down');
 
         if ( $table_event === 'create' ) {
-           $schema = Template::schema('drop', $table_name, false);
+           $schema = Content::schema('drop', $table_name, false);
 
            // Add drop schema into down function
            $down = $this->add_after('{', $schema, $down);
         } else {
             // for delete, add, and update
-            $schema = Template::schema('table', $table_name);
+            $schema = Content::schema('table', $table_name);
         }
 
         if ( $table_event === 'delete' ) {
@@ -547,36 +498,21 @@ EOT;
      */
     public function resource($args)
     {
-        if ( $this->should_include_tests($args) ) {
-            $args = array_diff($args, array('with_tests'));
-        }
-
         // Pluralize controller name
         if ( !preg_match('/admin|config/', $args[0]) ) {
             $args[0] = Str::plural($args[0]);
-        }
-
-        // If only the resource name was provided, let's build out the full resource map.
-        if ( count($args) === 1 ) {
-            $args = array($args[0], 'index', 'index:post', 'show', 'edit', 'new', 'update:put', 'destroy:delete', 'restful');
         }
 
         $this->controller($args);
 
         // Singular for everything else
         $resource_name = Str::singular(array_shift($args));
-        
-        // Should we include tests?
-        if ( isset($this->should_include_tests) ) {
-            $this->test(array_merge(array(Str::plural($resource_name)), $args));
-        }
 
         if ( $this->is_restful($args) ) {
             // Remove that restful item from the array. No longer needed.
             $args = array_diff($args, array('restful'));
+            $args = $this->determine_views($args);
         }
-
-        $args = $this->determine_views($args);
 
         // Let's take any supplied view names, and set them
         // in the resource name's directory.
@@ -761,7 +697,6 @@ EOT;
             return "\$table->drop_column(array(" . implode(', ', $fields) . "));";
         }
     }
-    
 
     public function path($dir)
     {
@@ -798,7 +733,6 @@ EOT;
 
     public function add_after($where, $to_add, $content)
     {
-        // return preg_replace('/' . $where . '/', $where . $to_add, $content, 1);
         return str_replace($where, $where . $to_add, $content);
     }
 
@@ -810,69 +744,25 @@ EOT;
     }
 
 
-    protected function should_include_tests($args)
-    {
-        $tests_pos = array_search('with_tests', $args);
-
-        if ( $tests_pos !== false ) {
-            return $this->should_include_tests = true;
-        }
-        
-        return false;
-    }
-
-
     protected function determine_views($args)
     {
-        $views = array();
-
-        foreach($args as $arg) {
+        // Separate index:post, and remove any non-GET views.
+        array_walk($args, function(&$arg, $index) use(&$args) {
+            // method, optional verb
             $bits = explode(':', $arg);
-            $name = $bits[0];
+            $arg = $bits[0];
 
-            if ( isset($bits[1]) && strtolower($bits[1]) === 'get' || !isset($bits[1]) ) {
-                $views[] = $name;
+            if ( isset($bits[1]) && $bits[1] !== 'get' ) {
+                // then we shouldn't create a view for it.
+                unset($args[$index]);
             }
-        }
+        });
 
-        return $views;
+        return $args;
     }
 }
 
 class Content {
-    public static function add_after($where, $to_add)
-    {
-        Generate_Task::$content = str_replace($where, $where . $to_add, Generate_Task::$content);
-
-    }
-}
-
-
-class Template {
-    public static function test($class_name, $test)
-    {
-        return <<<EOT
-    public function test_{$test}()
-    {
-        \$response = Controller::call('{$class_name}@$test'); 
-        \$this->assertEquals('200', \$response->foundation->getStatusCode());
-        \$this->assertRegExp('/.+/', (string)\$response, 'There should be some content in the $test view.');
-    }
-EOT;
-    }
-
-
-    public static function func($func_name)
-    {
-        return <<<EOT
-    public function {$func_name}()
-    {
-
-    }
-EOT;
-    }
-
-
     public static function new_class($name, $extends_class = null)
     {
         $content = "<?php class $name";
@@ -885,6 +775,10 @@ EOT;
         Generate_Task::$content = $content;
     }
 
+    public static function func($func_name)
+    {
+        return "public function {$func_name}() {}";
+    }
 
     public static function schema($table_action, $table_name, $cb = true)
     {
@@ -895,4 +789,9 @@ EOT;
             : $content . ');';
     }
 
+    public static function add_after($where, $to_add)
+    {
+        Generate_Task::$content = str_replace($where, $where . $to_add, Generate_Task::$content);
+
+    }
 }
