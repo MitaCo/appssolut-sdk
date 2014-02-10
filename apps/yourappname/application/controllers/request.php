@@ -8,7 +8,7 @@ class Request_Controller extends Base_Controller {
         parent::__construct();
     }
 
-    public function get_invite($hash = null) {
+    public function get_invite($hash = null, $out_facebook = null) {
         // has to know where is published
         $app = App::where('app_user_apps_publish_page_id', '=', $hash)->where('app_apps_application_id', '=', APPSOLUTE_APPID)->first();
         $instance = Instance::where_instance($hash)->first();
@@ -22,10 +22,18 @@ class Request_Controller extends Base_Controller {
                 if (!$request->save())
                     die($request);
         }
-        return Redirect::to($app->fblink);
+        $redirect_to = $app->fblink;
+        if (!empty($out_facebook))
+            $redirect_to = URL::to_route('app_show', $hash);
+        return Redirect::to($redirect_to);
     }
     public function get_response() {
         return $this->post_response();
+    }
+
+    public function get_refresh() {
+        Session::flush();
+        return 'ok';
     }
     
     public function post_response() {
@@ -39,7 +47,7 @@ class Request_Controller extends Base_Controller {
                     $instance = $invite->instance()->first();
                     $app = App::where('app_user_apps_publish_page_id', '=', $instance->instance)->where('app_apps_application_id', '=', APPSOLUTE_APPID)->first();
                     // return Redirect::to($app->fblink);
-                    $this->data['url'] = $app->fblink;
+                    $this->data['url'] = $app->fblink.'&ref=ts';
                 }
             }
         }
